@@ -1,8 +1,6 @@
 package uk.co.domaincraft.minecraft.plugins.zombie_arrival.listeners;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Effect;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -10,10 +8,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.player.PlayerLoginEvent.Result;
 import org.bukkit.event.vehicle.VehicleDestroyEvent;
 import org.bukkit.event.vehicle.VehicleMoveEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -22,6 +22,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.ReleaseType;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.ZombieArrival;
+import uk.co.domaincraft.minecraft.plugins.zombie_arrival.portablechest.InventoryManagement;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -181,6 +182,7 @@ public class EntityListener implements Listener{
 			//Logger.log("Death chance: " + chance);
 			ItemStack drop, regDrop;
 			LivingEntity zombie = (LivingEntity)entity;
+
 			if(chance == 1){
 				drop = new ItemStack(Material.SULPHUR);
 				
@@ -198,6 +200,17 @@ public class EntityListener implements Listener{
 			}
 			regDrop = new ItemStack(Material.BONE);
 			zombie.getWorld().dropItemNaturally(zombie.getLocation(), regDrop);
+            if(event.getDrops().contains(new ItemStack(Material.POTATO_ITEM))){
+                event.getDrops().remove(new ItemStack(Material.POTATO_ITEM));
+                ItemStack poisionPotato = new ItemStack(Material.POTATO_ITEM);
+                ItemMeta meta = poisionPotato.getItemMeta();
+                ArrayList<String> lore = new ArrayList<String>();
+                lore.add(ChatColor.DARK_GREEN.toString() + ChatColor.ITALIC.toString() + "Put nine in a crafting table to get a regular potato...");
+                meta.setLore(lore);
+                poisionPotato.setItemMeta(meta);
+                event.getEntity().getWorld().dropItemNaturally(event.getEntity().getLocation(), poisionPotato);
+
+            }
 			
 		}else if(entity instanceof Player){
 			Player player = (Player)entity;
@@ -209,6 +222,20 @@ public class EntityListener implements Listener{
                 zombie.setCustomName(player.getName());
                 zombie.setCustomNameVisible(true);
                 zombie.setCanPickupItems(true);
+                if(!entity.getWorld().getGameRuleValue("keepInventory").equalsIgnoreCase("true")){
+                    Inventory inventory = Bukkit.createInventory((Player)entity, 27);
+                    inventory.setContents(InventoryManagement.loadInventory(plugin, (Player)entity));
+                    for(int i = 0; i < inventory.getContents().length; i++){
+                        if(inventory.getContents()[i] != null){
+                            entity.getWorld().dropItemNaturally(entity.getLocation(), inventory.getContents()[i]);
+
+                        }
+                        inventory.setItem(i, new ItemStack(Material.AIR));
+
+
+                    }
+                    InventoryManagement.saveInventory(plugin, (Player)entity, inventory);
+                }
 			}
 		}else if(entity instanceof Giant){
             ItemStack treasure = tieredGiantLoot();
@@ -363,6 +390,9 @@ public class EntityListener implements Listener{
         }else if(event.getPlayer().getName().equalsIgnoreCase("dwalder01")){
             String message = ChatColor.BLUE + event.getMessage();
             event.setMessage(message);
+        }else if(event.getPlayer().getName().equalsIgnoreCase("The_Flame98")){
+            String message = ChatColor.AQUA + event.getMessage();
+            event.setMessage(message);
         }
 	}
 	
@@ -379,15 +409,33 @@ public class EntityListener implements Listener{
 				ItemStack stack = event.getPlayer().getItemInHand();
 				stack.setAmount(stack.getAmount() - 1);
 				event.getPlayer().setItemInHand(stack);
-			}else if(event.getPlayer().getItemInHand().getType() == Material.WORKBENCH){
-                event.getPlayer().openWorkbench(event.getPlayer().getLocation(), true);
-            }else if(event.getPlayer().getItemInHand().getType() == Material.COMPASS){
+			}else if(event.getPlayer().getItemInHand().getType() == Material.COMPASS){
                 event.getPlayer().teleport(event.getPlayer().getBedSpawnLocation());
             }
 		}else if(event.getAction() == Action.LEFT_CLICK_AIR){
             if(event.getPlayer().getItemInHand().getType() == Material.COMPASS){
                 event.getPlayer().setCompassTarget(event.getPlayer().getBedSpawnLocation());
             }
+        }
+
+        if(!event.getPlayer().isSneaking() && (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)){
+            if(event.getPlayer().getItemInHand().getType() == Material.WORKBENCH){
+                event.getPlayer().openWorkbench(event.getPlayer().getLocation(), true);
+                event.setCancelled(true);
+            }else if(event.getPlayer().getItemInHand().getType() == Material.CHEST && event.getPlayer().getItemInHand().getItemMeta().getDisplayName().contains("Backpack")){
+                Inventory inv = Bukkit.createInventory(event.getPlayer(), 27, "Portable Chest");
+                if(InventoryManagement.loadInventory(plugin, event.getPlayer()) instanceof ItemStack[]){
+                    if(InventoryManagement.loadInventory(plugin, event.getPlayer()) != null){
+                        inv.setContents(InventoryManagement.loadInventory(plugin, event.getPlayer()));
+
+                    }
+                }
+                event.getPlayer().openInventory(inv);
+                event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.CHEST_OPEN, 100f, 0f);
+                event.setCancelled(true);
+
+            }
+
         }
 	}
 
@@ -404,6 +452,19 @@ public class EntityListener implements Listener{
             event.getVehicle().setVelocity(new Vector(0, 0, 0));
         }
     }
+
+    @EventHandler
+    public void inventoryClose(InventoryCloseEvent event){
+        if(event.getInventory().getName().equalsIgnoreCase("Portable Chest") && event.getInventory() != null){
+            InventoryManagement.saveInventory(plugin, (Player)event.getPlayer(), event.getInventory());
+            ((Player) event.getPlayer()).playSound(event.getPlayer().getLocation(), Sound.CHEST_CLOSE, 100f, 0f);
+
+        }
+    }
+
+
+
+
 
 
 

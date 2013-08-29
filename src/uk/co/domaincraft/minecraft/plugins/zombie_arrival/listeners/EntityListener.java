@@ -1,39 +1,38 @@
 package uk.co.domaincraft.minecraft.plugins.zombie_arrival.listeners;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Effect;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.BlockState;
+import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.player.PlayerLoginEvent.Result;
 import org.bukkit.event.vehicle.VehicleDestroyEvent;
 import org.bukkit.event.vehicle.VehicleMoveEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.EnchantmentStorageMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.material.Door;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
+import uk.co.domaincraft.minecraft.plugins.zombie_arrival.ReleaseType;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.ZombieArrival;
-import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.Logger;
+import uk.co.domaincraft.minecraft.plugins.zombie_arrival.portablechest.InventoryManagement;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 public class EntityListener implements Listener{
 	
 	private ZombieArrival plugin;
-	
-	public EntityListener(ZombieArrival plugin){
+
+
+    public EntityListener(ZombieArrival plugin){
 		this.plugin = plugin;
 	}
 	
@@ -41,7 +40,9 @@ public class EntityListener implements Listener{
 	@EventHandler
 	public void creatureSpawn(CreatureSpawnEvent event){
 		if(!(event.getEntityType() == EntityType.ZOMBIE || event.getEntityType() == EntityType.CHICKEN || event.getEntityType() == EntityType.COW
-                || event.getEntityType() == EntityType.SHEEP || event.getEntityType() == EntityType.WOLF || event.getEntityType() == EntityType.SNOWMAN)){
+                || event.getEntityType() == EntityType.SHEEP || event.getEntityType() == EntityType.WOLF || event.getEntityType() == EntityType.SNOWMAN
+                || event.getEntityType() == EntityType.GIANT || event.getEntityType() == EntityType.BLAZE || event.getEntityType() == EntityType.OCELOT)
+                || event.getEntityType() == EntityType.HORSE){
 			event.setCancelled(true);
 			//Logger.log("The following entity spawned: " + event.getEntityType());
 		}else if(event.getEntityType() == EntityType.ZOMBIE){
@@ -58,23 +59,29 @@ public class EntityListener implements Listener{
 				
 				for(int i = 0;i < 5; i++){
 					event.getEntity().getWorld().spawnEntity(zombie.getLocation(), EntityType.ZOMBIE);
+                    //event.getEntity().getWorld().strikeLightningEffect(zombie.getLocation());
 			
 				}
-				event.getEntity().getWorld().spawnEntity(zombie.getLocation(), EntityType.GIANT);
+				if(event.getEntity().getLocation().getY() > 60){
+                    event.getEntity().getWorld().spawnEntity(zombie.getLocation(), EntityType.GIANT);
+
+                   //plugin.getServer().broadcastMessage(ChatColor.ITALIC + "" + ChatColor.RED + "A foul essence travels through the air..");
+                }
+
 				
 			}
 			
 			//Logger.log("Cluster Chance: " + clusterChance);
 				
 			
-			zombieHelmet = this.colorArmor(zombieHelmet, color1, color2, color3);
+			colorArmor(zombieHelmet, color1, color2, color3);
 			
 			event.getEntity().getEquipment().setHelmet(zombieHelmet);
 			//Logger.log("Zombie at " + zombie.getLocation() + " now has a leather helmet.");
 			
 			
 			
-			ItemStack sword = new ItemStack(Material.SKULL);
+			ItemStack sword = new ItemStack(Material.SKULL); // Place holder. We don't want a chance of NPE!
 			
 			int choice = rand.nextInt(5);
 			//Logger.log("Zombie sword: " + choice);
@@ -90,17 +97,33 @@ public class EntityListener implements Listener{
 			}else if (choice == 4){
 				sword = new ItemStack(Material.DIAMOND_SWORD);
 				sword.addEnchantment(Enchantment.FIRE_ASPECT, 2);
+                zombie.getEquipment().setChestplate(new ItemStack(Material.DIAMOND_CHESTPLATE));
+                zombie.getEquipment().setLeggings(new ItemStack(Material.IRON_LEGGINGS));
+                zombie.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
+
 			}
 			zombie.getEquipment().setItemInHandDropChance(0F);
 			zombie.getEquipment().setItemInHand(sword);
-		
-		}
+
+
+        }
 	}
+
+    @EventHandler
+    public void teleportEvent(PlayerTeleportEvent event){
+        event.getFrom().getWorld().playEffect(event.getFrom(), Effect.ENDER_SIGNAL, 100);
+        event.getTo().getWorld().playEffect(event.getTo(), Effect.ENDER_SIGNAL, 100);
+
+
+    }
 	
 	@EventHandler
 	public void damageByEntityEvent(EntityDamageByEntityEvent event){
 		Entity entity = event.getEntity();
-		Logger.log(entity.toString());
+        Random rand = new Random();
+        int randChance = rand.nextInt(5);
+
+
 		if(event.getEntityType() == EntityType.ZOMBIE){
 			
 		}else{
@@ -108,14 +131,19 @@ public class EntityListener implements Listener{
 				if(event.getDamager() instanceof Zombie){
 					LivingEntity theDamaged = (LivingEntity)event.getEntity();	
 					theDamaged.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 500, 500));
-					if(theDamaged instanceof Player){
-						event.setCancelled(true);
-					}
+                    if(randChance == 1){
+                        theDamaged.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 500, 500));
+                    }else if(randChance == 2){
+                        theDamaged.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 500, 500));
+                    }
+
 				}
 			}
 		}
 			
 	}
+
+
 	
 	@EventHandler
 	public void damageEvent(EntityDamageEvent event){
@@ -131,7 +159,7 @@ public class EntityListener implements Listener{
 		
 		if(event.getEntityType() == EntityType.PLAYER){
 			Player player = (Player)event.getEntity();
-			player.setPlayerListName(ChatColor.DARK_GREEN + player.getName() + " " + player.getHealth());
+			//player.setPlayerListName(ChatColor.DARK_GREEN + player.getName() + " " + player.getHealth());
 			if(player.getName().equalsIgnoreCase("russjr08") || player.getName().equalsIgnoreCase("mac889")){
 				//event.setCancelled(true);
 			}else if(player.getName().equalsIgnoreCase("pineapple95")){
@@ -142,13 +170,7 @@ public class EntityListener implements Listener{
 			}
 		}
 	}
-    @EventHandler
-    public void healthRegain(EntityRegainHealthEvent event){
-        if(event.getEntityType() == EntityType.PLAYER){
-            Player player = (Player)event.getEntity();
-            player.setPlayerListName(ChatColor.DARK_GREEN + player.getName() + " " + player.getHealth() );
-        }
-    }
+
 	
 	@EventHandler
 	public void deathEvent(EntityDeathEvent event){
@@ -160,6 +182,7 @@ public class EntityListener implements Listener{
 			//Logger.log("Death chance: " + chance);
 			ItemStack drop, regDrop;
 			LivingEntity zombie = (LivingEntity)entity;
+
 			if(chance == 1){
 				drop = new ItemStack(Material.SULPHUR);
 				
@@ -177,6 +200,17 @@ public class EntityListener implements Listener{
 			}
 			regDrop = new ItemStack(Material.BONE);
 			zombie.getWorld().dropItemNaturally(zombie.getLocation(), regDrop);
+            if(event.getDrops().contains(new ItemStack(Material.POTATO_ITEM))){
+                event.getDrops().remove(new ItemStack(Material.POTATO_ITEM));
+                ItemStack poisionPotato = new ItemStack(Material.POTATO_ITEM);
+                ItemMeta meta = poisionPotato.getItemMeta();
+                ArrayList<String> lore = new ArrayList<String>();
+                lore.add(ChatColor.DARK_GREEN.toString() + ChatColor.ITALIC.toString() + "Put nine in a crafting table to get a regular potato...");
+                meta.setLore(lore);
+                poisionPotato.setItemMeta(meta);
+                event.getEntity().getWorld().dropItemNaturally(event.getEntity().getLocation(), poisionPotato);
+
+            }
 			
 		}else if(entity instanceof Player){
 			Player player = (Player)entity;
@@ -184,9 +218,39 @@ public class EntityListener implements Listener{
 				specialDeath(player);
 				
 			}else{
-				player.getWorld().spawnEntity(player.getLocation(), EntityType.ZOMBIE);
+				Zombie zombie = (Zombie)player.getWorld().spawnEntity(player.getLocation(), EntityType.ZOMBIE);
+                zombie.setCustomName(player.getName());
+                zombie.setCustomNameVisible(true);
+                zombie.setCanPickupItems(true);
+                if(!entity.getWorld().getGameRuleValue("keepInventory").equalsIgnoreCase("true")){
+                    Inventory inventory = Bukkit.createInventory((Player)entity, 27);
+                    inventory.setContents(InventoryManagement.loadInventory(plugin, (Player)entity));
+                    for(int i = 0; i < inventory.getContents().length; i++){
+                        if(inventory.getContents()[i] != null){
+                            entity.getWorld().dropItemNaturally(entity.getLocation(), inventory.getContents()[i]);
+
+                        }
+                        inventory.setItem(i, new ItemStack(Material.AIR));
+
+
+                    }
+                    InventoryManagement.saveInventory(plugin, (Player)entity, inventory);
+                }
 			}
-		}
+		}else if(entity instanceof Giant){
+            ItemStack treasure = tieredGiantLoot();
+            ItemMeta treasureMeta = treasure.getItemMeta();
+            ArrayList<String> lore = new ArrayList<String>();
+            lore.add(ChatColor.ITALIC + " " + ChatColor.GOLD + "Treasure Loot");
+            treasureMeta.setLore(lore);
+            treasure.setItemMeta(treasureMeta);
+
+
+            Giant giant = (Giant)event.getEntity();
+
+            giant.getWorld().dropItemNaturally(giant.getLocation(), treasure);
+
+        }
 		
 	}
 	
@@ -201,11 +265,7 @@ public class EntityListener implements Listener{
 
                 zombie.getWorld().playEffect(zombie.getLocation(), Effect.SMOKE, 5);
 
-                if(player.getName().equalsIgnoreCase("QTeamWildCard")){
-                    //zombie.getWorld().strikeLightning(player.getLocation());
-                    player.sendMessage(ChatColor.GRAY + "YOU BUTT SLUT!!");
 
-                }
 
 
                 if(player.getInventory().getHelmet() != null && player.getInventory().getHelmet().getType() == Material.PUMPKIN || player.getInventory().getHelmet().getType() == Material.JACK_O_LANTERN){
@@ -245,42 +305,67 @@ public class EntityListener implements Listener{
 		player.sendMessage(ChatColor.GOLD + "We will prompt you for a texturepack change in 10 seconds!");
 
         ZombieArrival.blueTeam.add(player.getName());
-        player.sendMessage(ChatColor.BLUE + "You are now on BLUE team");
+        //player.sendMessage(ChatColor.BLUE + "You are now on BLUE team");
 			
-		int taskID = plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-			@Override
-			public void run(){
-				player.setTexturePack("http://domaincraft.co.uk/TexturePack.zip");
-				
-				player.sendMessage(ChatColor.RED + "That was your only warning!");
-			}
-		}, 200L);
+//		int taskID = plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
+//			@Override
+//			public void run(){
+//				player.setTexturePack("http://domaincraft.co.uk/TexturePack.zip");
+//
+//				player.sendMessage(ChatColor.RED + "That was your only warning!");
+//			}
+//		}, 200L);
+
+        if(event.getPlayer().isOp()){
+
+            if(ZombieArrival.updateChecker.needsUpdate){
+                if(ZombieArrival.releaseType == ReleaseType.ALPHA){
+                    player.sendMessage("[ZombieArrival] Plugin is " + ChatColor.DARK_RED + "not up to date on the ALPHA channel! " + ChatColor.WHITE + "New Version found: " + ZombieArrival.updateChecker.serverVer );
+                }
+                else if(ZombieArrival.releaseType == ReleaseType.BETA){
+                    player.sendMessage("[ZombieArrival] Plugin is " + ChatColor.DARK_RED + "not up to date on the BETA channel! " + ChatColor.WHITE + "New Version found: " + ZombieArrival.updateChecker.serverVer );
+                }
+                else if(ZombieArrival.releaseType == ReleaseType.RELEASE){
+                    player.sendMessage("[ZombieArrival] Plugin is " + ChatColor.DARK_RED + "not up to date on the RELEASE channel! " + ChatColor.WHITE + "New Version found: " + ZombieArrival.updateChecker.serverVer );
+                }
+            }else{
+                if(ZombieArrival.releaseType == ReleaseType.ALPHA){
+                    player.sendMessage("[ZombieArrival] Plugin is " + ChatColor.GREEN + "up to date on the ALPHA channel!");
+                }
+                else if(ZombieArrival.releaseType == ReleaseType.BETA){
+                    player.sendMessage("[ZombieArrival] Plugin is " + ChatColor.GREEN + "up to date on the BETA channel!");
+                }
+                else if(ZombieArrival.releaseType == ReleaseType.RELEASE){
+                    player.sendMessage("[ZombieArrival] Plugin is " + ChatColor.GREEN + "up to date on the RELEASE channel!");
+                }
+            }
+        }
 		
 	}
 	
 	@EventHandler
 	public void playerLogin(PlayerLoginEvent event){
-		if(event.getResult() == Result.KICK_WHITELIST){
+        if(event.getResult() == Result.KICK_WHITELIST){
 			plugin.getServer().broadcastMessage(event.getPlayer().getName() + " tried to join" +
 					" but isn't whitelisted!");
 		}
+
+
 	}
+
+
 	
-	@EventHandler
-	public void explosionEvent(ExplosionPrimeEvent event){
-		event.setCancelled(true);
-		
-	}
+
 	
 	@EventHandler
 	public void chatEvent(PlayerChatEvent event){
-		if(event.getPlayer().getName().equalsIgnoreCase("russjr08")){
+		if(event.getPlayer().getName().equalsIgnoreCase("russjr08")  || event.getPlayer().getName().equalsIgnoreCase("QTeamWildCard")){
 			if(event.getMessage().equalsIgnoreCase("!kill")){
 				for(Entity e:event.getPlayer().getWorld().getEntities()){
-					e.getWorld().createExplosion(e.getLocation(), 0.5F);
-					if(e instanceof LivingEntity){
+					if(e instanceof LivingEntity && (e instanceof Zombie || e instanceof Giant)){
 						LivingEntity ent = (LivingEntity)e;
-						ent.damage(100);
+                        ent.getWorld().createExplosion(e.getLocation(), 0.5F);
+                        ent.damage(100);
 					}
 				}
 			}else if(event.getMessage().equalsIgnoreCase("!drops")){
@@ -294,11 +379,21 @@ public class EntityListener implements Listener{
 			}else if(event.getPlayer().getName().equalsIgnoreCase("russjr08")){
 				String message = ChatColor.GOLD + event.getMessage();
 				event.setMessage(message);
-			}else if(event.getPlayer().getName().equalsIgnoreCase("Steveb175")){
-                String message = ChatColor.AQUA + event.getMessage();
-                event.setMessage(message);
             }
 		}
+        if(event.getPlayer().getName().equalsIgnoreCase("itsNikki")){
+            String message = ChatColor.AQUA + event.getMessage();
+            event.setMessage(message);
+        }else if(event.getPlayer().getName().equalsIgnoreCase("QTeamWildCard")){
+            String message = ChatColor.GREEN + event.getMessage();
+            event.setMessage(message);
+        }else if(event.getPlayer().getName().equalsIgnoreCase("dwalder01")){
+            String message = ChatColor.BLUE + event.getMessage();
+            event.setMessage(message);
+        }else if(event.getPlayer().getName().equalsIgnoreCase("The_Flame98")){
+            String message = ChatColor.AQUA + event.getMessage();
+            event.setMessage(message);
+        }
 	}
 	
 	
@@ -308,35 +403,38 @@ public class EntityListener implements Listener{
 		if(event.getAction() == Action.RIGHT_CLICK_AIR){
 			if(event.getPlayer().getItemInHand().getType() == Material.WATCH){
 				event.getPlayer().getWorld().setTime(event.getPlayer().getWorld().getTime() + 200L);
-				plugin.getServer().getPlayer("QTeamWildCard").setPlayerTime(15000, false);
-			}else if(event.getPlayer().getItemInHand().getType() == Material.PUMPKIN_SEEDS || event.getPlayer().hasPotionEffect(PotionEffectType.POISON)){
+			}else if(event.getPlayer().getItemInHand().getType() == Material.PUMPKIN_SEEDS && event.getPlayer().hasPotionEffect(PotionEffectType.POISON)){
 				event.getPlayer().removePotionEffect(PotionEffectType.POISON);
 				event.getPlayer().sendMessage(ChatColor.AQUA + "You have been cured!");
 				ItemStack stack = event.getPlayer().getItemInHand();
 				stack.setAmount(stack.getAmount() - 1);
 				event.getPlayer().setItemInHand(stack);
-			}else if(event.getPlayer().getItemInHand().getType() == Material.WORKBENCH){
-                event.getPlayer().openWorkbench(event.getPlayer().getLocation(), true);
-            }else if(event.getPlayer().getItemInHand().getType() == Material.COMPASS){
+			}else if(event.getPlayer().getItemInHand().getType() == Material.COMPASS){
                 event.getPlayer().teleport(event.getPlayer().getBedSpawnLocation());
             }
 		}else if(event.getAction() == Action.LEFT_CLICK_AIR){
             if(event.getPlayer().getItemInHand().getType() == Material.COMPASS){
                 event.getPlayer().setCompassTarget(event.getPlayer().getBedSpawnLocation());
             }
-        }else if(event.getClickedBlock().getType() == Material.IRON_DOOR){
-                System.out.println("Block clicked");
-                BlockState state = event.getClickedBlock().getState();
-                Door door = (Door)state.getData();
-                if(door.isOpen()){
-                    door.setOpen(true);
-                    state.update();
-                }else{
-                    door.setOpen(false);
-                    state.update();
+        }
+
+        if(!event.getPlayer().isSneaking() && (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)){
+            if(event.getPlayer().getItemInHand().getType() == Material.WORKBENCH){
+                event.getPlayer().openWorkbench(event.getPlayer().getLocation(), true);
+                event.setCancelled(true);
+            }else if(event.getPlayer().getItemInHand().getType() == Material.CHEST && event.getPlayer().getItemInHand().getItemMeta().getDisplayName().contains("Backpack")){
+                Inventory inv = Bukkit.createInventory(event.getPlayer(), 27, "Portable Chest");
+                if(InventoryManagement.loadInventory(plugin, event.getPlayer()) instanceof ItemStack[]){
+                    if(InventoryManagement.loadInventory(plugin, event.getPlayer()) != null){
+                        inv.setContents(InventoryManagement.loadInventory(plugin, event.getPlayer()));
+
+                    }
                 }
+                event.getPlayer().openInventory(inv);
+                event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.CHEST_OPEN, 100f, 0f);
+                event.setCancelled(true);
 
-
+            }
 
         }
 	}
@@ -354,32 +452,25 @@ public class EntityListener implements Listener{
             event.getVehicle().setVelocity(new Vector(0, 0, 0));
         }
     }
-	
-	
-	@EventHandler
-	public void teleportEvent(PlayerTeleportEvent event){
-		Location toTP = event.getTo();
-		Random rand = new Random();
-		double randX, randY, randZ;
-		randX = rand.nextInt(255);
-		randY = rand.nextInt(100);
-		randZ = rand.nextInt(255);
-	
-		
-		
-		if(toTP.equals(plugin.getServer().getPlayer("QTeamWildCard").getLocation())){
-			if(!event.getPlayer().getName().equals("QTeamWildCard")){
+
+    @EventHandler
+    public void inventoryClose(InventoryCloseEvent event){
+        if(event.getInventory().getName().equalsIgnoreCase("Portable Chest") && event.getInventory() != null){
+            InventoryManagement.saveInventory(plugin, (Player)event.getPlayer(), event.getInventory());
+            ((Player) event.getPlayer()).playSound(event.getPlayer().getLocation(), Sound.CHEST_CLOSE, 100f, 0f);
+
+        }
+    }
 
 
-               // event.setTo(new Location(event.getPlayer().getWorld(), randX, randY, randZ));
-                plugin.getServer().getPlayer("QTeamWildCard").sendMessage(ChatColor.RED + "Following player" +
-                        "tried to teleport to you: " + event.getPlayer().getName());
 
-                event.getPlayer().sendMessage("Access to Michael is " + ChatColor.RED + "DENIED.");
-            }
-		}
-		
-	}
+
+
+
+
+	
+	
+
 	
 	
 	public ItemStack colorArmor(ItemStack stack, int r, int g, int b){
@@ -399,6 +490,26 @@ public class EntityListener implements Listener{
 		player.getWorld().playEffect(player.getLocation(), Effect.MOBSPAWNER_FLAMES, 5F);
 		player.teleport(player.getWorld().getSpawnLocation());
 	}
+
+    public ItemStack tieredGiantLoot(){
+
+        Random random = new Random();
+        ItemStack loot = new ItemStack(Material.POTATO_ITEM);
+
+        int tier = random.nextInt(5);
+
+        if(tier == 0){
+
+        }else if(tier == 1){
+
+        }
+
+
+        return loot;
+    }
+
+
+
 	
 
 }

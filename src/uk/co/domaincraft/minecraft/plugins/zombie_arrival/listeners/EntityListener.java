@@ -11,15 +11,12 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.player.PlayerLoginEvent.Result;
-import org.bukkit.event.vehicle.VehicleDestroyEvent;
-import org.bukkit.event.vehicle.VehicleMoveEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.util.Vector;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.ReleaseType;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.ZombieArrival;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.portablechest.InventoryManagement;
@@ -39,10 +36,7 @@ public class EntityListener implements Listener{
 	
 	@EventHandler
 	public void creatureSpawn(CreatureSpawnEvent event){
-		if(!(event.getEntityType() == EntityType.ZOMBIE || event.getEntityType() == EntityType.CHICKEN || event.getEntityType() == EntityType.COW
-                || event.getEntityType() == EntityType.SHEEP || event.getEntityType() == EntityType.WOLF || event.getEntityType() == EntityType.SNOWMAN
-                || event.getEntityType() == EntityType.GIANT || event.getEntityType() == EntityType.BLAZE || event.getEntityType() == EntityType.OCELOT)
-                || event.getEntityType() == EntityType.HORSE){
+		if(event.getEntity() instanceof Monster && !(event.getEntity() instanceof Zombie)){
 			event.setCancelled(true);
 			//Logger.log("The following entity spawned: " + event.getEntityType());
 		}else if(event.getEntityType() == EntityType.ZOMBIE){
@@ -50,9 +44,9 @@ public class EntityListener implements Listener{
 			ItemStack zombieHelmet = new ItemStack(Material.LEATHER_HELMET);
 			Random rand = new Random();
 			int color1, color2, color3, clusterChance;
-			color1 = rand.nextInt(15);
-			color2 = rand.nextInt(15);
-			color3 = rand.nextInt(15);
+			color1 = rand.nextInt(255);
+			color2 = rand.nextInt(255);
+			color3 = rand.nextInt(255);
 			clusterChance = rand.nextInt(7);
 			
 			if(clusterChance == 1){
@@ -124,24 +118,21 @@ public class EntityListener implements Listener{
         int randChance = rand.nextInt(5);
 
 
-		if(event.getEntityType() == EntityType.ZOMBIE){
-			
-		}else{
-			if(event.getCause() == DamageCause.ENTITY_ATTACK){
-				if(event.getDamager() instanceof Zombie){
-					LivingEntity theDamaged = (LivingEntity)event.getEntity();	
-					theDamaged.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 500, 500));
+        if (event.getEntityType() != EntityType.ZOMBIE) {
+            if(event.getCause() == DamageCause.ENTITY_ATTACK){
+                if(event.getDamager() instanceof Zombie){
+                    LivingEntity theDamaged = (LivingEntity)event.getEntity();
+                    theDamaged.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 500, 500));
                     if(randChance == 1){
                         theDamaged.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 500, 500));
                     }else if(randChance == 2){
                         theDamaged.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 500, 500));
                     }
+                }
+            }
+        }
 
-				}
-			}
-		}
-			
-	}
+    }
 
 
 	
@@ -159,15 +150,7 @@ public class EntityListener implements Listener{
 		
 		if(event.getEntityType() == EntityType.PLAYER){
 			Player player = (Player)event.getEntity();
-			//player.setPlayerListName(ChatColor.DARK_GREEN + player.getName() + " " + player.getHealth());
-			if(player.getName().equalsIgnoreCase("russjr08") || player.getName().equalsIgnoreCase("mac889")){
-				//event.setCancelled(true);
-			}else if(player.getName().equalsIgnoreCase("pineapple95")){
-				event.setCancelled(true);
-				if(player.getHealth() > 3){
-				event.setDamage(2);
-				}
-			}
+			player.setPlayerListName(ChatColor.DARK_GREEN + player.getName() + " " + player.getHealth());
 		}
 	}
 
@@ -257,39 +240,12 @@ public class EntityListener implements Listener{
 	@EventHandler
 	public void targetEvent(EntityTargetEvent event){
 		if(event.getTarget() instanceof Player){
-			Player player = (Player)event.getTarget();
-            LivingEntity zombie = null;
             if(event.getEntity() instanceof Zombie){
-                zombie = (LivingEntity)event.getEntity();
+				LivingEntity zombie = (LivingEntity) event.getEntity();
 
 
                 zombie.getWorld().playEffect(zombie.getLocation(), Effect.SMOKE, 5);
 
-
-
-
-                if(player.getInventory().getHelmet() != null && player.getInventory().getHelmet().getType() == Material.PUMPKIN || player.getInventory().getHelmet().getType() == Material.JACK_O_LANTERN){
-
-                    //event.setCancelled(true);
-
-                    // -- This is fun! zombie.getWorld().createExplosion(zombie.getLocation(), 0.5F, false);
-                    if(player.getName().equals("mac889")){
-                        Random rand = new Random();
-                        zombie.getWorld().createExplosion(zombie.getLocation(), 0.5F, false);
-                        player.getInventory().setHelmet(new ItemStack(Material.JACK_O_LANTERN));
-
-                        int chance = rand.nextInt(100);
-
-                        if(chance == 4){
-                        }else{
-
-                            zombie.throwSnowball();
-                        }
-
-                    }else {}
-
-
-                }
 
 
             }
@@ -410,7 +366,11 @@ public class EntityListener implements Listener{
 				stack.setAmount(stack.getAmount() - 1);
 				event.getPlayer().setItemInHand(stack);
 			}else if(event.getPlayer().getItemInHand().getType() == Material.COMPASS){
-                event.getPlayer().teleport(event.getPlayer().getBedSpawnLocation());
+				if(event.getPlayer().getBedSpawnLocation() != null) {
+					event.getPlayer().teleport(event.getPlayer().getBedSpawnLocation());
+				} else {
+				    event.getPlayer().sendMessage(ChatColor.RED + "You have not slept yet, teleport cancelled.");
+                }
             }
 		}else if(event.getAction() == Action.LEFT_CLICK_AIR){
             if(event.getPlayer().getItemInHand().getType() == Material.COMPASS){
@@ -424,14 +384,12 @@ public class EntityListener implements Listener{
                 event.setCancelled(true);
             }else if(event.getPlayer().getItemInHand().getType() == Material.CHEST && event.getPlayer().getItemInHand().getItemMeta().getDisplayName().contains("Backpack")){
                 Inventory inv = Bukkit.createInventory(event.getPlayer(), 27, "Portable Chest");
-                if(InventoryManagement.loadInventory(plugin, event.getPlayer()) instanceof ItemStack[]){
-                    if(InventoryManagement.loadInventory(plugin, event.getPlayer()) != null){
-                        inv.setContents(InventoryManagement.loadInventory(plugin, event.getPlayer()));
+                if(InventoryManagement.loadInventory(plugin, event.getPlayer()) != null){
+                    inv.setContents(InventoryManagement.loadInventory(plugin, event.getPlayer()));
 
-                    }
                 }
                 event.getPlayer().openInventory(inv);
-                event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.CHEST_OPEN, 100f, 0f);
+                event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.BLOCK_CHEST_OPEN, 100f, 0f);
                 event.setCancelled(true);
 
             }
@@ -439,25 +397,26 @@ public class EntityListener implements Listener{
         }
 	}
 
-    @EventHandler
-    public void breakBoat(VehicleDestroyEvent event){
-        if(!(event.getAttacker() != null)){
-            event.setCancelled(true);
-        }
-    }
-
-    @EventHandler
-    public void boatMove(VehicleMoveEvent event){
-        if(!(event.getVehicle().getPassenger() != null)){
-            event.getVehicle().setVelocity(new Vector(0, 0, 0));
-        }
-    }
+	// TODO: Re-evaluate boat logic (Minecraft has since updated Boats)
+//    @EventHandler
+//    public void breakBoat(VehicleDestroyEvent event){
+//        if(!(event.getAttacker() != null)){
+//            event.setCancelled(true);
+//        }
+//    }
+//
+//    @EventHandler
+//    public void boatMove(VehicleMoveEvent event){
+//        if(!(event.getVehicle().getPassenger() != null)){
+//            event.getVehicle().setVelocity(new Vector(0, 0, 0));
+//        }
+//    }
 
     @EventHandler
     public void inventoryClose(InventoryCloseEvent event){
         if(event.getInventory().getName().equalsIgnoreCase("Portable Chest") && event.getInventory() != null){
             InventoryManagement.saveInventory(plugin, (Player)event.getPlayer(), event.getInventory());
-            ((Player) event.getPlayer()).playSound(event.getPlayer().getLocation(), Sound.CHEST_CLOSE, 100f, 0f);
+            ((Player) event.getPlayer()).playSound(event.getPlayer().getLocation(), Sound.BLOCK_CHEST_CLOSE, 100f, 0f);
 
         }
     }
@@ -473,7 +432,7 @@ public class EntityListener implements Listener{
 
 	
 	
-	public ItemStack colorArmor(ItemStack stack, int r, int g, int b){
+	private ItemStack colorArmor(ItemStack stack, int r, int g, int b){
 		
 		LeatherArmorMeta meta = (LeatherArmorMeta)stack.getItemMeta();
 		
@@ -484,28 +443,18 @@ public class EntityListener implements Listener{
 		return stack;
 	}
 	
-	public void specialDeath(Player player){
+	private void specialDeath(Player player){
 		player.setHealth(1);
 		player.setExhaustion(5F);
 		player.getWorld().playEffect(player.getLocation(), Effect.MOBSPAWNER_FLAMES, 5F);
 		player.teleport(player.getWorld().getSpawnLocation());
 	}
 
-    public ItemStack tieredGiantLoot(){
+    private ItemStack tieredGiantLoot(){
 
-        Random random = new Random();
-        ItemStack loot = new ItemStack(Material.POTATO_ITEM);
+        // TODO: Implement tiers of various loot collected from Giants.
 
-        int tier = random.nextInt(5);
-
-        if(tier == 0){
-
-        }else if(tier == 1){
-
-        }
-
-
-        return loot;
+        return new ItemStack(Material.POTATO_ITEM);
     }
 
 

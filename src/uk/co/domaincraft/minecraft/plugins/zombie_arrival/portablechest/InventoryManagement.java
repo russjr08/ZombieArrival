@@ -12,6 +12,7 @@ public class InventoryManagement {
     public static ItemStack[] loadInventory(ZombieArrival plugin, Player player){
 
         if(plugin.getConfig().get("portablechest." + player.getName()) instanceof ArrayList<?>){
+            //noinspection unchecked
             ArrayList<ItemStack> items = (ArrayList<ItemStack>)plugin.getConfig().get("portablechest." + player.getName());
             ItemStack[] itemStacks = new ItemStack[27];
             if(items != null){

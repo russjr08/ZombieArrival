@@ -28,8 +28,8 @@
   </build>
   <repositories>
     <repository>
-      <id>repobo-snap</id>
-      <url>http://repo.bukkit.org/content/groups/public</url>
+      <id>bukkit-snapshots</id>
+      <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
     </repository>
 	<repository>
       <id>TagAPI</id>
@@ -40,7 +40,7 @@
   	<dependency>
   		<groupId>org.bukkit</groupId>
   		<artifactId>bukkit</artifactId>
-		<version>1.6.2-R0.2-SNAPSHOT</version>
+		<version>1.12.2-R0.1-SNAPSHOT</version>
 		<type>jar</type>
 		<scope>compile</scope>
   	</dependency>

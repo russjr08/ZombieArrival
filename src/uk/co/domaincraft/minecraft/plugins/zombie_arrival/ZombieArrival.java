@@ -3,6 +3,7 @@ package uk.co.domaincraft.minecraft.plugins.zombie_arrival;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
@@ -24,10 +25,12 @@ public class ZombieArrival extends JavaPlugin {
     public static ReleaseType releaseType = ReleaseType.ALPHA;
     public static double version = 1.1;
 
-    public static List<String> blueTeam = new ArrayList();
-    public static List<String> redTeam = new ArrayList();
+    public static List<String> blueTeam = new ArrayList<String>();
+    public static List<String> redTeam = new ArrayList<String>();
 
     public static UpdateChecker updateChecker = new UpdateChecker();
+
+    private NamespacedKey namespace = new NamespacedKey(this, "recipes");
 	
 	@Override
 	public void onEnable(){
@@ -49,18 +52,16 @@ public class ZombieArrival extends JavaPlugin {
 		
 		pm.registerEvents(new EntityListener(this), this);
         pm.registerEvents(new CraftingListener(), this);
-		//pm.registerEvents(new ServerListener(this), this);
-		
-		ShapelessRecipe zombieFleshLeather = new ShapelessRecipe(new ItemStack(Material.LEATHER, 2));
+
+		ShapelessRecipe zombieFleshLeather = new ShapelessRecipe(namespace, new ItemStack(Material.LEATHER, 2));
 		zombieFleshLeather.addIngredient(Material.ROTTEN_FLESH);
 		zombieFleshLeather.addIngredient(Material.ROTTEN_FLESH);
 		zombieFleshLeather.addIngredient(Material.ROTTEN_FLESH);
 		zombieFleshLeather.addIngredient(Material.ROTTEN_FLESH);
 		
 		getServer().addRecipe(zombieFleshLeather);
-		Logger.log("ZombieFlesh-Leather Recipe added!");
 
-        ShapelessRecipe potato = new ShapelessRecipe(new ItemStack(Material.POTATO_ITEM));
+        ShapelessRecipe potato = new ShapelessRecipe(namespace, new ItemStack(Material.POTATO_ITEM));
         potato.addIngredient(Material.POISONOUS_POTATO);
         potato.addIngredient(Material.POISONOUS_POTATO);
         potato.addIngredient(Material.POISONOUS_POTATO);
@@ -73,20 +74,19 @@ public class ZombieArrival extends JavaPlugin {
 
         getServer().addRecipe(potato);
 
-        Logger.log("Potato Recipe added!");
 
         addEnderRecipe();
-        try {
-            updateChecker.checkForUpdate();
-        } catch (Exception e) {
-            Logger.log("Error checking for update!");
-            e.printStackTrace();
-        }
+//        try {
+//            updateChecker.checkForUpdate();
+//        } catch (Exception e) {
+//            Logger.log("Error checking for update!");
+//            e.printStackTrace();
+//        }
 
     }
 
-    public void addEnderRecipe(){
-        ShapedRecipe enderpearl = new ShapedRecipe(new ItemStack(Material.ENDER_PEARL, 4));
+    private void addEnderRecipe(){
+        ShapedRecipe enderpearl = new ShapedRecipe(namespace, new ItemStack(Material.ENDER_PEARL, 4));
         Dye lapis = new Dye();
         lapis.setColor(DyeColor.BLUE);
         enderpearl.shape(" L ", "LDL", " L ");

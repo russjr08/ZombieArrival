@@ -30,8 +30,7 @@ public class ZombieArrival extends JavaPlugin {
 
     public static UpdateChecker updateChecker = new UpdateChecker();
 
-    private NamespacedKey namespace = new NamespacedKey(this, "recipes");
-	
+
 	@Override
 	public void onEnable(){
 
@@ -53,7 +52,7 @@ public class ZombieArrival extends JavaPlugin {
 		pm.registerEvents(new EntityListener(this), this);
         pm.registerEvents(new CraftingListener(), this);
 
-		ShapelessRecipe zombieFleshLeather = new ShapelessRecipe(namespace, new ItemStack(Material.LEATHER, 2));
+		ShapelessRecipe zombieFleshLeather = new ShapelessRecipe(new NamespacedKey(this, "zombieflesh"), new ItemStack(Material.LEATHER, 2));
 		zombieFleshLeather.addIngredient(Material.ROTTEN_FLESH);
 		zombieFleshLeather.addIngredient(Material.ROTTEN_FLESH);
 		zombieFleshLeather.addIngredient(Material.ROTTEN_FLESH);
@@ -61,7 +60,7 @@ public class ZombieArrival extends JavaPlugin {
 		
 		getServer().addRecipe(zombieFleshLeather);
 
-        ShapelessRecipe potato = new ShapelessRecipe(namespace, new ItemStack(Material.POTATO_ITEM));
+        ShapelessRecipe potato = new ShapelessRecipe(new NamespacedKey(this, "clean_potato"), new ItemStack(Material.POTATO_ITEM));
         potato.addIngredient(Material.POISONOUS_POTATO);
         potato.addIngredient(Material.POISONOUS_POTATO);
         potato.addIngredient(Material.POISONOUS_POTATO);
@@ -86,7 +85,7 @@ public class ZombieArrival extends JavaPlugin {
     }
 
     private void addEnderRecipe(){
-        ShapedRecipe enderpearl = new ShapedRecipe(namespace, new ItemStack(Material.ENDER_PEARL, 4));
+        ShapedRecipe enderpearl = new ShapedRecipe(new NamespacedKey(this, "enderpearl"), new ItemStack(Material.ENDER_PEARL, 4));
         Dye lapis = new Dye();
         lapis.setColor(DyeColor.BLUE);
         enderpearl.shape(" L ", "LDL", " L ");

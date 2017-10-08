@@ -36,9 +36,9 @@ public class EntityListener implements Listener{
 	
 	@EventHandler
 	public void creatureSpawn(CreatureSpawnEvent event){
-		if(event.getEntity() instanceof Monster && !(event.getEntity() instanceof Zombie)){
+		if(event.getEntity() instanceof Monster && !(event.getEntity() instanceof Zombie
+                || event.getEntity() instanceof Giant)){
 			event.setCancelled(true);
-			//Logger.log("The following entity spawned: " + event.getEntityType());
 		}else if(event.getEntityType() == EntityType.ZOMBIE){
 			LivingEntity zombie = event.getEntity();
 			ItemStack zombieHelmet = new ItemStack(Material.LEATHER_HELMET);
@@ -53,13 +53,18 @@ public class EntityListener implements Listener{
 				
 				for(int i = 0;i < 5; i++){
 					event.getEntity().getWorld().spawnEntity(zombie.getLocation(), EntityType.ZOMBIE);
-                    //event.getEntity().getWorld().strikeLightningEffect(zombie.getLocation());
+                    event.getEntity().getWorld().strikeLightningEffect(zombie.getLocation());
 			
 				}
-				if(event.getEntity().getLocation().getY() > 60){
+				if(event.getEntity().getLocation().getY() > 60 && event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.CUSTOM){
                     event.getEntity().getWorld().spawnEntity(zombie.getLocation(), EntityType.GIANT);
 
-                   //plugin.getServer().broadcastMessage(ChatColor.ITALIC + "" + ChatColor.RED + "A foul essence travels through the air..");
+                    for(Player p : plugin.getServer().getOnlinePlayers()) {
+                        if(p.getLocation().distance(event.getLocation()) <= 60) {
+                            p.sendMessage(ChatColor.DARK_GREEN + ChatColor.ITALIC.toString()
+                                    + "A foul essence travels through the air...");
+                        }
+                    }
                 }
 
 				

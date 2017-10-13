@@ -8,6 +8,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.player.PlayerLoginEvent.Result;
@@ -19,7 +20,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.ReleaseType;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.ZombieArrival;
-import uk.co.domaincraft.minecraft.plugins.zombie_arrival.portablechest.InventoryManagement;
+import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.InventoryManagement;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -262,20 +263,9 @@ public class EntityListener implements Listener{
 	@EventHandler
 	public void playerJoin(PlayerJoinEvent event){
 		final Player player = event.getPlayer();
-		player.sendMessage(ChatColor.GOLD + "This server does not support texture packs");
-		player.sendMessage(ChatColor.GOLD + "We will prompt you for a texturepack change in 10 seconds!");
 
         ZombieArrival.blueTeam.add(player.getName());
         //player.sendMessage(ChatColor.BLUE + "You are now on BLUE team");
-			
-//		int taskID = plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-//			@Override
-//			public void run(){
-//				player.setTexturePack("http://domaincraft.co.uk/TexturePack.zip");
-//
-//				player.sendMessage(ChatColor.RED + "That was your only warning!");
-//			}
-//		}, 200L);
 
         if(event.getPlayer().isOp()){
 
@@ -362,32 +352,39 @@ public class EntityListener implements Listener{
 	@EventHandler
 	public void interactEvent(PlayerInteractEvent event){
 		if(event.getAction() == Action.RIGHT_CLICK_AIR){
-			if(event.getPlayer().getItemInHand().getType() == Material.WATCH){
-				event.getPlayer().getWorld().setTime(event.getPlayer().getWorld().getTime() + 200L);
-			}else if(event.getPlayer().getItemInHand().getType() == Material.PUMPKIN_SEEDS && event.getPlayer().hasPotionEffect(PotionEffectType.POISON)){
+			if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.WATCH){
+				if(event.getPlayer().isOp()) {
+					event.getPlayer().getWorld().setTime(event.getPlayer().getWorld().getTime() + 200L);
+				}
+			}else if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.PUMPKIN_SEEDS && event.getPlayer().hasPotionEffect(PotionEffectType.POISON)){
 				event.getPlayer().removePotionEffect(PotionEffectType.POISON);
 				event.getPlayer().sendMessage(ChatColor.AQUA + "You have been cured!");
-				ItemStack stack = event.getPlayer().getItemInHand();
+				ItemStack stack = event.getPlayer().getInventory().getItemInMainHand();
 				stack.setAmount(stack.getAmount() - 1);
-				event.getPlayer().setItemInHand(stack);
-			}else if(event.getPlayer().getItemInHand().getType() == Material.COMPASS){
+				event.getPlayer().getInventory().setItemInMainHand(stack);
+			}else if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.COMPASS){
 				if(event.getPlayer().getBedSpawnLocation() != null) {
 					event.getPlayer().teleport(event.getPlayer().getBedSpawnLocation());
 				} else {
 				    event.getPlayer().sendMessage(ChatColor.RED + "You have not slept yet, teleport cancelled.");
                 }
-            }
+            } else if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.COMPASS) {
+
+			}
 		}else if(event.getAction() == Action.LEFT_CLICK_AIR){
-            if(event.getPlayer().getItemInHand().getType() == Material.COMPASS){
-                event.getPlayer().setCompassTarget(event.getPlayer().getBedSpawnLocation());
+            if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.COMPASS){
+                Inventory inv = Bukkit.createInventory(event.getPlayer(), 27,
+                        "Player List");
+                inv.setContents(InventoryManagement.getStackOfOnlinePlayers(plugin));
+                event.getPlayer().openInventory(inv);
             }
         }
 
         if(!event.getPlayer().isSneaking() && (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)){
-            if(event.getPlayer().getItemInHand().getType() == Material.WORKBENCH){
+            if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.WORKBENCH){
                 event.getPlayer().openWorkbench(event.getPlayer().getLocation(), true);
                 event.setCancelled(true);
-            }else if(event.getPlayer().getItemInHand().getType() == Material.CHEST && event.getPlayer().getItemInHand().getItemMeta().getDisplayName().contains("Backpack")){
+            }else if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.CHEST && event.getPlayer().getItemInHand().getItemMeta().getDisplayName().contains("Backpack")){
                 Inventory inv = Bukkit.createInventory(event.getPlayer(), 27, "Portable Chest");
                 if(InventoryManagement.loadInventory(plugin, event.getPlayer()) != null){
                     inv.setContents(InventoryManagement.loadInventory(plugin, event.getPlayer()));
@@ -402,20 +399,18 @@ public class EntityListener implements Listener{
         }
 	}
 
-	// TODO: Re-evaluate boat logic (Minecraft has since updated Boats)
-//    @EventHandler
-//    public void breakBoat(VehicleDestroyEvent event){
-//        if(!(event.getAttacker() != null)){
-//            event.setCancelled(true);
-//        }
-//    }
-//
-//    @EventHandler
-//    public void boatMove(VehicleMoveEvent event){
-//        if(!(event.getVehicle().getPassenger() != null)){
-//            event.getVehicle().setVelocity(new Vector(0, 0, 0));
-//        }
-//    }
+
+	@EventHandler
+	public void inventoryHandler(InventoryClickEvent event) {
+		if(event.getInventory().getTitle().equalsIgnoreCase("Player List")) {
+			event.setCancelled(true);
+			plugin.getServer().getPlayer(event.getWhoClicked().getUniqueId())
+                    .setCompassTarget(plugin.getServer()
+                            .getPlayer(ChatColor.stripColor(event.getCurrentItem().getItemMeta().getDisplayName()))
+                            .getLocation());
+
+		}
+	}
 
     @EventHandler
     public void inventoryClose(InventoryCloseEvent event){

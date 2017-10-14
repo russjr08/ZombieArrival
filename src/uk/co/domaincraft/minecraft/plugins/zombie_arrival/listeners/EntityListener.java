@@ -21,6 +21,7 @@ import org.bukkit.potion.PotionEffectType;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.ReleaseType;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.ZombieArrival;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.InventoryManagement;
+import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.ZombieUtils;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -40,17 +41,22 @@ public class EntityListener implements Listener{
 		if(event.getEntity() instanceof Monster && !(event.getEntity() instanceof Zombie
                 || event.getEntity() instanceof Giant)){
 			event.setCancelled(true);
-		}else if(event.getEntityType() == EntityType.ZOMBIE){
-			LivingEntity zombie = event.getEntity();
+            event.getEntity().getWorld().spawnEntity(event.getEntity().getLocation(), EntityType.ZOMBIE);
+        }else if(event.getEntityType() == EntityType.ZOMBIE){
+			Zombie zombie = (Zombie) event.getEntity();
 			ItemStack zombieHelmet = new ItemStack(Material.LEATHER_HELMET);
 			Random rand = new Random();
-			int color1, color2, color3, clusterChance;
+
+			int color1, color2, color3;
+			float clusterChance;
+
 			color1 = rand.nextInt(255);
 			color2 = rand.nextInt(255);
 			color3 = rand.nextInt(255);
-			clusterChance = rand.nextInt(7);
+
+			clusterChance = rand.nextFloat();
 			
-			if(clusterChance == 1){
+			if(clusterChance <= 0.02F){
 				
 				for(int i = 0;i < 5; i++){
 					event.getEntity().getWorld().spawnEntity(zombie.getLocation(), EntityType.ZOMBIE);
@@ -70,15 +76,11 @@ public class EntityListener implements Listener{
 
 				
 			}
-			
-			//Logger.log("Cluster Chance: " + clusterChance);
-				
+
 			
 			colorArmor(zombieHelmet, color1, color2, color3);
 			
 			event.getEntity().getEquipment().setHelmet(zombieHelmet);
-			//Logger.log("Zombie at " + zombie.getLocation() + " now has a leather helmet.");
-			
 			
 			
 			ItemStack sword = new ItemStack(Material.SKULL); // Place holder. We don't want a chance of NPE!
@@ -105,6 +107,8 @@ public class EntityListener implements Listener{
 			zombie.getEquipment().setItemInHandDropChance(0F);
 			zombie.getEquipment().setItemInHand(sword);
 
+
+            ZombieUtils.createClassedZombie(zombie, plugin);
 
         }
 	}
@@ -199,6 +203,11 @@ public class EntityListener implements Listener{
                 poisionPotato.setItemMeta(meta);
                 event.getEntity().getWorld().dropItemNaturally(event.getEntity().getLocation(), poisionPotato);
 
+            }
+
+            if(zombie.getMetadata("class").size() >= 1 && zombie.getMetadata("class")
+                    .get(0).asString().equalsIgnoreCase("kamikaze")) {
+                zombie.getWorld().createExplosion(zombie.getLocation(), 2F);
             }
 			
 		}else if(entity instanceof Player){
@@ -404,10 +413,13 @@ public class EntityListener implements Listener{
 	public void inventoryHandler(InventoryClickEvent event) {
 		if(event.getInventory().getTitle().equalsIgnoreCase("Player List")) {
 			event.setCancelled(true);
-			plugin.getServer().getPlayer(event.getWhoClicked().getUniqueId())
-                    .setCompassTarget(plugin.getServer()
-                            .getPlayer(ChatColor.stripColor(event.getCurrentItem().getItemMeta().getDisplayName()))
-                            .getLocation());
+			if(event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
+                plugin.getServer().getPlayer(event.getWhoClicked().getUniqueId())
+                        .setCompassTarget(plugin.getServer()
+                                .getPlayer(ChatColor.stripColor(event.getCurrentItem().getItemMeta().getDisplayName()))
+                                .getLocation());
+
+            }
 
 		}
 	}

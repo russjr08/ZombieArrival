@@ -1,7 +1,6 @@
 package uk.co.domaincraft.minecraft.plugins.zombie_arrival.listeners;
 
 import org.bukkit.*;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,12 +17,12 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import uk.co.domaincraft.minecraft.plugins.zombie_arrival.ReleaseType;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.ZombieArrival;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.InventoryManagement;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.ZombieUtils;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Random;
 
 public class EntityListener implements Listener{
@@ -81,34 +80,18 @@ public class EntityListener implements Listener{
 			colorArmor(zombieHelmet, color1, color2, color3);
 			
 			event.getEntity().getEquipment().setHelmet(zombieHelmet);
-			
-			
-			ItemStack sword = new ItemStack(Material.SKULL); // Place holder. We don't want a chance of NPE!
-			
-			int choice = rand.nextInt(5);
-			//Logger.log("Zombie sword: " + choice);
-			if(choice == 0){
-				sword = new ItemStack(Material.WOOD_SWORD);
-			}else if(choice == 1){
-				sword = new ItemStack(Material.STONE_SWORD);
-				
-			}else if (choice == 2){
-				sword = new ItemStack(Material.IRON_SWORD);
-			}else if (choice == 3){
-				sword = new ItemStack(Material.GOLD_SWORD);
-			}else if (choice == 4){
-				sword = new ItemStack(Material.DIAMOND_SWORD);
-				sword.addEnchantment(Enchantment.FIRE_ASPECT, 2);
-                zombie.getEquipment().setChestplate(new ItemStack(Material.DIAMOND_CHESTPLATE));
-                zombie.getEquipment().setLeggings(new ItemStack(Material.IRON_LEGGINGS));
-                zombie.getEquipment().setBoots(new ItemStack(Material.LEATHER_BOOTS));
-
-			}
-			zombie.getEquipment().setItemInHandDropChance(0F);
-			zombie.getEquipment().setItemInHand(sword);
 
 
-            ZombieUtils.createClassedZombie(zombie, plugin);
+			double d = Math.random();
+            if(d >= .8) { // 20% chance to create a classed zombie
+                ZombieUtils.createClassedZombie(zombie, plugin);
+            }
+
+            if((Calendar.getInstance().get(Calendar.MONTH) == Calendar.OCTOBER) &&
+                    (Calendar.getInstance().get(Calendar.DAY_OF_MONTH) == 31)) {
+                zombie.setBaby(true);
+                zombie.getEquipment().setHelmet(new ItemStack(Material.JACK_O_LANTERN));
+            }
 
         }
 	}
@@ -273,34 +256,33 @@ public class EntityListener implements Listener{
 	public void playerJoin(PlayerJoinEvent event){
 		final Player player = event.getPlayer();
 
-        ZombieArrival.blueTeam.add(player.getName());
-        //player.sendMessage(ChatColor.BLUE + "You are now on BLUE team");
 
         if(event.getPlayer().isOp()){
 
-            if(ZombieArrival.updateChecker.needsUpdate){
-                if(ZombieArrival.releaseType == ReleaseType.ALPHA){
-                    player.sendMessage("[ZombieArrival] Plugin is " + ChatColor.DARK_RED + "not up to date on the ALPHA channel! " + ChatColor.WHITE + "New Version found: " + ZombieArrival.updateChecker.serverVer );
+
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        if(plugin.updateChecker.needsUpdate()) {
+                            player.sendMessage(String.format("[ZombieArrival] Plugin is " +
+                                            ChatColor.DARK_RED + "OUT OF date on the %s channel! (Latest: %s > Server: %s)",
+                                    plugin.updateChecker.getReleaseType(), plugin.updateChecker.getServerVersion(),
+                                    plugin.updateChecker.getLocalVersion()));
+                        } else {
+                            player.sendMessage(String.format("[ZombieArrival] Plugin is " +
+                                            ChatColor.GREEN + "up to date on the %s channel! (Latest: %s <= Server: %s)",
+                                    plugin.updateChecker.getReleaseType(), plugin.updateChecker.getServerVersion(),
+                                    plugin.updateChecker.getLocalVersion()));
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
-                else if(ZombieArrival.releaseType == ReleaseType.BETA){
-                    player.sendMessage("[ZombieArrival] Plugin is " + ChatColor.DARK_RED + "not up to date on the BETA channel! " + ChatColor.WHITE + "New Version found: " + ZombieArrival.updateChecker.serverVer );
-                }
-                else if(ZombieArrival.releaseType == ReleaseType.RELEASE){
-                    player.sendMessage("[ZombieArrival] Plugin is " + ChatColor.DARK_RED + "not up to date on the RELEASE channel! " + ChatColor.WHITE + "New Version found: " + ZombieArrival.updateChecker.serverVer );
-                }
-            }else{
-                if(ZombieArrival.releaseType == ReleaseType.ALPHA){
-                    player.sendMessage("[ZombieArrival] Plugin is " + ChatColor.GREEN + "up to date on the ALPHA channel!");
-                }
-                else if(ZombieArrival.releaseType == ReleaseType.BETA){
-                    player.sendMessage("[ZombieArrival] Plugin is " + ChatColor.GREEN + "up to date on the BETA channel!");
-                }
-                else if(ZombieArrival.releaseType == ReleaseType.RELEASE){
-                    player.sendMessage("[ZombieArrival] Plugin is " + ChatColor.GREEN + "up to date on the RELEASE channel!");
-                }
-            }
+            });
         }
-		
+
+
 	}
 	
 	@EventHandler
@@ -319,15 +301,22 @@ public class EntityListener implements Listener{
 	
 	@EventHandler
 	public void chatEvent(PlayerChatEvent event){
-		if(event.getPlayer().getName().equalsIgnoreCase("russjr08")  || event.getPlayer().getName().equalsIgnoreCase("QTeamWildCard")){
+		if(event.getPlayer().isOp()){
 			if(event.getMessage().equalsIgnoreCase("!kill")){
-				for(Entity e:event.getPlayer().getWorld().getEntities()){
+			    int numOfNamedZombies = 0;
+				for(Entity e : event.getPlayer().getWorld().getEntities()){
 					if(e instanceof LivingEntity && (e instanceof Zombie || e instanceof Giant)){
 						LivingEntity ent = (LivingEntity)e;
-                        ent.getWorld().createExplosion(e.getLocation(), 0.5F);
+						if(e.getCustomName() != null) {
+						    numOfNamedZombies++;
+						    continue;
+                        }
+                        ent.getWorld().createExplosion(e.getLocation().getX(), e.getLocation().getY(), e.getLocation().getZ(), .5F, false, false);
                         ent.damage(100);
 					}
 				}
+
+				event.getPlayer().sendMessage(String.format("%s%sWarning: %d Zombies were not cleared due to being named.", ChatColor.DARK_GRAY, ChatColor.ITALIC, numOfNamedZombies));
 			}else if(event.getMessage().equalsIgnoreCase("!drops")){
 				for(Entity e : event.getPlayer().getWorld().getEntities()){
 					if(e != null && e instanceof Item){
@@ -344,8 +333,8 @@ public class EntityListener implements Listener{
         if(event.getPlayer().getName().equalsIgnoreCase("itsNikki")){
             String message = ChatColor.AQUA + event.getMessage();
             event.setMessage(message);
-        }else if(event.getPlayer().getName().equalsIgnoreCase("QTeamWildCard")){
-            String message = ChatColor.GREEN + event.getMessage();
+        }else if(event.getPlayer().getName().equalsIgnoreCase("Krobe_")){
+            String message = ChatColor.BLUE + event.getMessage();
             event.setMessage(message);
         }else if(event.getPlayer().getName().equalsIgnoreCase("dwalder01")){
             String message = ChatColor.BLUE + event.getMessage();
@@ -375,7 +364,7 @@ public class EntityListener implements Listener{
 				if(event.getPlayer().getBedSpawnLocation() != null) {
 					event.getPlayer().teleport(event.getPlayer().getBedSpawnLocation());
 				} else {
-				    event.getPlayer().sendMessage(ChatColor.RED + "You have not slept yet, teleport cancelled.");
+				    event.getPlayer().sendMessage(ChatColor.RED + "You have not slept yet to set your bed, teleport cancelled.");
                 }
             } else if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.COMPASS) {
 

@@ -1,9 +1,6 @@
 package uk.co.domaincraft.minecraft.plugins.zombie_arrival;
 
-import org.bukkit.ChatColor;
-import org.bukkit.DyeColor;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
+import org.bukkit.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
@@ -15,24 +12,19 @@ import uk.co.domaincraft.minecraft.plugins.zombie_arrival.listeners.EntityListen
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.Logger;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.UpdateChecker;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class ZombieArrival extends JavaPlugin {
 	public static final String pluginName = "Zombie Arrival";
 	public ZombieArrival instance;
 
-    public static ReleaseType releaseType = ReleaseType.ALPHA;
-    public static double version = 1.1;
-
-    public static List<String> blueTeam = new ArrayList<String>();
-    public static List<String> redTeam = new ArrayList<String>();
-
-    public static UpdateChecker updateChecker = new UpdateChecker();
+    public UpdateChecker updateChecker;
 
 
 	@Override
 	public void onEnable(){
+
+        instance = this;
+
+        updateChecker = new UpdateChecker(Double.parseDouble(this.getDescription().getVersion()), ReleaseType.ALPHA);
 
         // Custom Names
         CraftingListener.specialName.put(new ItemStack(Material.WORKBENCH), ChatColor.GREEN + "(Portable) Workbench");
@@ -75,12 +67,24 @@ public class ZombieArrival extends JavaPlugin {
 
 
         addEnderRecipe();
-//        try {
-//            updateChecker.checkForUpdate();
-//        } catch (Exception e) {
-//            Logger.log("Error checking for update!");
-//            e.printStackTrace();
-//        }
+        Bukkit.getScheduler().runTask(this, new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if(updateChecker.needsUpdate()) {
+                        Logger.log(String.format("Plugin is out of date! %s > %s (%s)",
+                                updateChecker.getServerVersion(), updateChecker.getLocalVersion(), updateChecker.getReleaseType()));
+                    } else {
+                        Logger.log(String.format("Plugin is up to date! %s <= %s (%s)",
+                                updateChecker.getServerVersion(), updateChecker.getLocalVersion(), updateChecker.getReleaseType()));
+                    }
+                } catch (Exception e) {
+                    Logger.log("Error checking for update!");
+                    e.printStackTrace();
+                }
+            }
+        });
+
 
     }
 
@@ -100,7 +104,7 @@ public class ZombieArrival extends JavaPlugin {
 	
 	@Override
 	public void onDisable(){
-		
+	    instance = null;
 	}
 
 }

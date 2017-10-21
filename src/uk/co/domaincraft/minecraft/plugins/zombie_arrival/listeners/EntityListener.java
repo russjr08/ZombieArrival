@@ -23,6 +23,7 @@ import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.ZombieUtils;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Map;
 import java.util.Random;
 
 public class EntityListener implements Listener{
@@ -152,40 +153,16 @@ public class EntityListener implements Listener{
 	public void deathEvent(EntityDeathEvent event){
 		Entity entity = event.getEntity();
 		if(entity instanceof Zombie){
-			Random rand = new Random();
-			int chance = rand.nextInt(10);
-			int superChance = rand.nextInt(1000);
-			//Logger.log("Death chance: " + chance);
-			ItemStack drop, regDrop;
+
 			LivingEntity zombie = (LivingEntity)entity;
 
-			if(chance == 1){
-				drop = new ItemStack(Material.SULPHUR);
-				
-				
-				zombie.getWorld().dropItemNaturally(zombie.getLocation(), drop);
-			}
-			if(chance == 1000){
-				drop = new ItemStack(Material.PUMPKIN);
-				zombie.getWorld().dropItemNaturally(zombie.getLocation(), drop);	
-				
-			}else if(chance == 50){
-				drop = new ItemStack(Material.PUMPKIN_SEEDS);
-				zombie.getWorld().dropItemNaturally(zombie.getLocation(), drop);
-				plugin.getServer().broadcastMessage(ChatColor.AQUA + "A CURE HAS BEEN FOUND FOR POISON!");
-			}
-			regDrop = new ItemStack(Material.BONE);
-			zombie.getWorld().dropItemNaturally(zombie.getLocation(), regDrop);
-            if(event.getDrops().contains(new ItemStack(Material.POTATO_ITEM))){
-                event.getDrops().remove(new ItemStack(Material.POTATO_ITEM));
-                ItemStack poisionPotato = new ItemStack(Material.POTATO_ITEM);
-                ItemMeta meta = poisionPotato.getItemMeta();
-                ArrayList<String> lore = new ArrayList<String>();
-                lore.add(ChatColor.DARK_GREEN.toString() + ChatColor.ITALIC.toString() + "Put nine in a crafting table to get a regular potato...");
-                meta.setLore(lore);
-                poisionPotato.setItemMeta(meta);
-                event.getEntity().getWorld().dropItemNaturally(event.getEntity().getLocation(), poisionPotato);
-
+            for(Map.Entry<ItemStack, Double> entry : plugin.zombieLoot.entrySet()) {
+                ItemStack stack = entry.getKey();
+                double chance = entry.getValue();
+                double rand = Math.random();
+                if(chance >= rand) {
+                    entity.getWorld().dropItemNaturally(entity.getLocation(), stack);
+                }
             }
 
             if(zombie.getMetadata("class").size() >= 1 && zombie.getMetadata("class")
@@ -292,6 +269,17 @@ public class EntityListener implements Listener{
 					" but isn't whitelisted!");
 		}
 
+		// TODO: Make this dynamic (pull from API)
+
+		if(event.getPlayer().getName().equalsIgnoreCase("russjr08")) {
+            event.getPlayer().setDisplayName(ChatColor.GOLD + "[Developer] russjr08");
+            event.getPlayer().setPlayerListName(ChatColor.GOLD + "[Dev] russjr08");
+        }
+
+        if(event.getPlayer().getName().equalsIgnoreCase("Krobe_")) {
+            event.getPlayer().setDisplayName(ChatColor.BLUE + "[ApSci] Krobe_");
+            event.getPlayer().setPlayerListName(ChatColor.BLUE + "[QA] Krobe_");
+        }
 
 	}
 
@@ -343,6 +331,7 @@ public class EntityListener implements Listener{
             String message = ChatColor.AQUA + event.getMessage();
             event.setMessage(message);
         }
+
 	}
 	
 	

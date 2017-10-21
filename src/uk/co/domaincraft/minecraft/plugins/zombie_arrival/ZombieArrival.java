@@ -1,5 +1,6 @@
 package uk.co.domaincraft.minecraft.plugins.zombie_arrival;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
@@ -10,14 +11,18 @@ import org.bukkit.plugin.java.JavaPlugin;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.listeners.CraftingListener;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.listeners.EntityListener;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.Logger;
+import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.LootTableGenerator;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.UpdateChecker;
+
+import java.util.Map;
 
 public class ZombieArrival extends JavaPlugin {
 	public static final String pluginName = "Zombie Arrival";
-	public ZombieArrival instance;
+	private static ZombieArrival instance;
 
     public UpdateChecker updateChecker;
 
+    public Map<ItemStack, Double> zombieLoot;
 
 	@Override
 	public void onEnable(){
@@ -65,6 +70,11 @@ public class ZombieArrival extends JavaPlugin {
 
         getServer().addRecipe(potato);
 
+        Logger.log("Generating zombie loot table... Please wait...");
+        zombieLoot = LootTableGenerator.generateZombieLootTableFromConfig();
+
+        Logger.log("Zombie loot table generation completed!");
+        Logger.log(ArrayUtils.toString(zombieLoot));
 
         addEnderRecipe();
         Bukkit.getScheduler().runTask(this, new Runnable() {
@@ -107,4 +117,7 @@ public class ZombieArrival extends JavaPlugin {
 	    instance = null;
 	}
 
+    public static ZombieArrival getInstance() {
+        return instance;
+    }
 }

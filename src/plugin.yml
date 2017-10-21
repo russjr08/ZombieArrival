@@ -1,5 +1,5 @@
 name: ZombieArrival
 main: uk.co.domaincraft.minecraft.plugins.zombie_arrival.ZombieArrival
-version: 2.10182017
+version: 2.10182020
 description: >
              A Bukkit plugin that emulates a Zombie Apocalypse!

@@ -1,8 +1,7 @@
 package uk.co.domaincraft.minecraft.plugins.zombie_arrival;
 
-import org.bukkit.ChatColor;
-import org.bukkit.DyeColor;
-import org.bukkit.Material;
+import org.apache.commons.lang.ArrayUtils;
+import org.bukkit.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
@@ -12,25 +11,25 @@ import org.bukkit.plugin.java.JavaPlugin;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.listeners.CraftingListener;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.listeners.EntityListener;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.Logger;
+import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.LootTableGenerator;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.UpdateChecker;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 public class ZombieArrival extends JavaPlugin {
 	public static final String pluginName = "Zombie Arrival";
-	public ZombieArrival instance;
+	private static ZombieArrival instance;
 
-    public static ReleaseType releaseType = ReleaseType.ALPHA;
-    public static double version = 1.1;
+    public UpdateChecker updateChecker;
 
-    public static List<String> blueTeam = new ArrayList();
-    public static List<String> redTeam = new ArrayList();
+    public Map<ItemStack, Double> zombieLoot;
 
-    public static UpdateChecker updateChecker = new UpdateChecker();
-	
 	@Override
 	public void onEnable(){
+
+        instance = this;
+
+        updateChecker = new UpdateChecker(Double.parseDouble(this.getDescription().getVersion()), ReleaseType.ALPHA);
 
         // Custom Names
         CraftingListener.specialName.put(new ItemStack(Material.WORKBENCH), ChatColor.GREEN + "(Portable) Workbench");
@@ -49,18 +48,16 @@ public class ZombieArrival extends JavaPlugin {
 		
 		pm.registerEvents(new EntityListener(this), this);
         pm.registerEvents(new CraftingListener(), this);
-		//pm.registerEvents(new ServerListener(this), this);
-		
-		ShapelessRecipe zombieFleshLeather = new ShapelessRecipe(new ItemStack(Material.LEATHER, 2));
+
+		ShapelessRecipe zombieFleshLeather = new ShapelessRecipe(new NamespacedKey(this, "zombieflesh"), new ItemStack(Material.LEATHER, 2));
 		zombieFleshLeather.addIngredient(Material.ROTTEN_FLESH);
 		zombieFleshLeather.addIngredient(Material.ROTTEN_FLESH);
 		zombieFleshLeather.addIngredient(Material.ROTTEN_FLESH);
 		zombieFleshLeather.addIngredient(Material.ROTTEN_FLESH);
 		
 		getServer().addRecipe(zombieFleshLeather);
-		Logger.log("ZombieFlesh-Leather Recipe added!");
 
-        ShapelessRecipe potato = new ShapelessRecipe(new ItemStack(Material.POTATO_ITEM));
+        ShapelessRecipe potato = new ShapelessRecipe(new NamespacedKey(this, "clean_potato"), new ItemStack(Material.POTATO_ITEM));
         potato.addIngredient(Material.POISONOUS_POTATO);
         potato.addIngredient(Material.POISONOUS_POTATO);
         potato.addIngredient(Material.POISONOUS_POTATO);
@@ -73,20 +70,36 @@ public class ZombieArrival extends JavaPlugin {
 
         getServer().addRecipe(potato);
 
-        Logger.log("Potato Recipe added!");
+        Logger.log("Generating zombie loot table... Please wait...");
+        zombieLoot = LootTableGenerator.generateZombieLootTableFromConfig();
+
+        Logger.log("Zombie loot table generation completed!");
+        Logger.log(ArrayUtils.toString(zombieLoot));
 
         addEnderRecipe();
-        try {
-            updateChecker.checkForUpdate();
-        } catch (Exception e) {
-            Logger.log("Error checking for update!");
-            e.printStackTrace();
-        }
+        Bukkit.getScheduler().runTask(this, new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if(updateChecker.needsUpdate()) {
+                        Logger.log(String.format("Plugin is out of date! %s > %s (%s)",
+                                updateChecker.getServerVersion(), updateChecker.getLocalVersion(), updateChecker.getReleaseType()));
+                    } else {
+                        Logger.log(String.format("Plugin is up to date! %s <= %s (%s)",
+                                updateChecker.getServerVersion(), updateChecker.getLocalVersion(), updateChecker.getReleaseType()));
+                    }
+                } catch (Exception e) {
+                    Logger.log("Error checking for update!");
+                    e.printStackTrace();
+                }
+            }
+        });
+
 
     }
 
-    public void addEnderRecipe(){
-        ShapedRecipe enderpearl = new ShapedRecipe(new ItemStack(Material.ENDER_PEARL, 4));
+    private void addEnderRecipe(){
+        ShapedRecipe enderpearl = new ShapedRecipe(new NamespacedKey(this, "enderpearl"), new ItemStack(Material.ENDER_PEARL, 4));
         Dye lapis = new Dye();
         lapis.setColor(DyeColor.BLUE);
         enderpearl.shape(" L ", "LDL", " L ");
@@ -101,7 +114,10 @@ public class ZombieArrival extends JavaPlugin {
 	
 	@Override
 	public void onDisable(){
-		
+	    instance = null;
 	}
 
+    public static ZombieArrival getInstance() {
+        return instance;
+    }
 }

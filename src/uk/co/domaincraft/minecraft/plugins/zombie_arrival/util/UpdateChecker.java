@@ -3,38 +3,51 @@ package uk.co.domaincraft.minecraft.plugins.zombie_arrival.util;
 
 import com.kronosad.api.internet.ReadURL;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.ReleaseType;
-import uk.co.domaincraft.minecraft.plugins.zombie_arrival.ZombieArrival;
 
 public class UpdateChecker {
 
-    private static ReadURL readURL;
-    public boolean needsUpdate = false;
-    private static String serverString;
-    public double serverVer;
+    private ReadURL readURL;
+    private double localVersion;
+    private ReleaseType releaseType;
+    private double serverVersion = 0.0;
+
+    public UpdateChecker(double localVersion, ReleaseType releaseType) {
+        this.localVersion = localVersion;
+        this.releaseType = releaseType;
+    }
 
 
-    public void checkForUpdate() throws Exception{
-        if(ZombieArrival.releaseType == ReleaseType.ALPHA){
+    public boolean needsUpdate() throws Exception {
+
+        if(this.releaseType == ReleaseType.ALPHA){
             readURL = new ReadURL("http://api.kronosad.com/minecraft/ZombieArrival/Alpha/update.txt");
-        }else if(ZombieArrival.releaseType == ReleaseType.BETA){
+        }else if(this.releaseType == ReleaseType.BETA){
             readURL = new ReadURL("http://api.kronosad.com/minecraft/ZombieArrival/Beta/update.txt");
-        }else if(ZombieArrival.releaseType == ReleaseType.RELEASE){
+        }else if(this.releaseType == ReleaseType.RELEASE){
             readURL = new ReadURL("http://api.kronosad.com/minecraft/ZombieArrival/Release/update.txt");
         }
 
-        serverString = readURL.read();
+        String serverString = readURL.read();
 
 
         if(serverString != null){
-            serverVer = Double.parseDouble(serverString);
+            serverVersion = Double.parseDouble(serverString);
         }
 
-        if(serverVer > ZombieArrival.version){
-            needsUpdate = true;
-        }
+        return serverVersion > this.localVersion;
 
 
     }
 
+    public double getServerVersion() {
+        return serverVersion;
+    }
 
+    public double getLocalVersion() {
+        return localVersion;
+    }
+
+    public ReleaseType getReleaseType() {
+        return releaseType;
+    }
 }

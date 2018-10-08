@@ -1,0 +1,32 @@
+{
+    "zombies": [
+        {
+            "item": "STRING",
+            "name": "Tattered Cloth",
+            "quantity": 1,
+            "chance": 0.10,
+            "lore": ["A piece of torn cloth from the undead..."]
+        },
+        {
+            "item": "POISONOUS_POTATO",
+            "name": "Zombie Food",
+            "quantity": 1,
+            "chance": 0.25,            
+            "lore": ["It is said that zombies run on potatoes..."]
+        },
+        {
+            "item": "SULPHUR",
+            "name": "Zombie Fuel",
+            "quantity": 1,
+            "chance": 0.05,            
+            "lore": ["BOOM!"]
+        },
+        {
+            "item": "PUMPKIN_SEEDS",
+            "name": "Antidote",
+            "quantity": 1,
+            "chance": 0.01,            
+            "lore": ["A quick patch for zombie bites!"]
+        }
+    ]
+}

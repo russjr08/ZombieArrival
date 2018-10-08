@@ -7,6 +7,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,45 +19,40 @@ public class CraftingListener implements Listener {
 
     @EventHandler
     public void craftingEvent(PrepareItemCraftEvent event){
-        ItemStack crafted = event.getRecipe().getResult();
+        if(event.getRecipe() != null) {
+            ItemStack crafted = event.getRecipe().getResult();
 
-        event.getInventory().setResult(getCustomItem(crafted));
+            event.getInventory().setResult(getCustomItem(crafted));
+        }
     }
 
     public ItemStack getCustomItem(ItemStack result){
-        ItemStack crafted = result;
         for(Map.Entry<ItemStack, String> entry : specialLore.entrySet()){
 
             ItemStack thisStack = entry.getKey();
 
-            if(crafted.getType() == thisStack.getType()){
-                ItemMeta meta = crafted.getItemMeta();
+            if(result.getType() == thisStack.getType()){
+                ItemMeta meta = result.getItemMeta();
                 ArrayList<String> lores = new ArrayList<String>();
                 String[] linesOfLores = entry.getValue().split("\n");
-                for(String lore : linesOfLores){
-                    lores.add(lore);
-                }
+                Collections.addAll(lores, linesOfLores);
 
-//                if(meta.hasLore()){
-//                    for(String lore : meta.getLore()){
-//                        lores.add(lore);
-//                    }
-//                }
+
                 meta.setLore(lores);
-                crafted.setItemMeta(meta);
+                result.setItemMeta(meta);
             }
         }
 
         for(Map.Entry<ItemStack, String> entry : specialName.entrySet()){
             ItemStack thisStack = entry.getKey();
-            if(crafted.getType() == thisStack.getType()){
-                ItemMeta meta = crafted.getItemMeta();
+            if(result.getType() == thisStack.getType()){
+                ItemMeta meta = result.getItemMeta();
                 meta.setDisplayName(entry.getValue());
-                crafted.setItemMeta(meta);
+                result.setItemMeta(meta);
 
             }
         }
-        return crafted;
+        return result;
     }
 
 }

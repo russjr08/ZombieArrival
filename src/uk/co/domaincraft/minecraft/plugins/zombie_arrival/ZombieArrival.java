@@ -32,12 +32,12 @@ public class ZombieArrival extends JavaPlugin {
         updateChecker = new UpdateChecker(Double.parseDouble(this.getDescription().getVersion()), ReleaseType.ALPHA);
 
         // Custom Names
-        CraftingListener.specialName.put(new ItemStack(Material.WORKBENCH), ChatColor.GREEN + "(Portable) Workbench");
+        CraftingListener.specialName.put(new ItemStack(Material.CRAFTING_TABLE), ChatColor.GREEN + "(Portable) Workbench");
         CraftingListener.specialName.put(new ItemStack(Material.CHEST), "Backpack");
 
         // Custom Lores
         CraftingListener.specialLore.put(new ItemStack(Material.COMPASS), ChatColor.GREEN.toString() + ChatColor.ITALIC + "Homing Device");
-        CraftingListener.specialLore.put(new ItemStack(Material.WORKBENCH), ChatColor.GREEN + "Right Click to Open\n" + ChatColor.RED + ChatColor.ITALIC.toString() + "Sneak-Right Click to Place");
+        CraftingListener.specialLore.put(new ItemStack(Material.CRAFTING_TABLE), ChatColor.GREEN + "Right Click to Open\n" + ChatColor.RED + ChatColor.ITALIC.toString() + "Sneak-Right Click to Place");
         CraftingListener.specialLore.put(new ItemStack(Material.CHEST), ChatColor.GREEN + "Right Click to Open\n"
                 + ChatColor.DARK_RED.toString() + ChatColor.ITALIC.toString()
                 + "Warning: Isn't valid if placed onto the ground anymore,\n" + ChatColor.DARK_RED.toString()
@@ -57,7 +57,7 @@ public class ZombieArrival extends JavaPlugin {
 		
 		getServer().addRecipe(zombieFleshLeather);
 
-        ShapelessRecipe potato = new ShapelessRecipe(new NamespacedKey(this, "clean_potato"), new ItemStack(Material.POTATO_ITEM));
+        ShapelessRecipe potato = new ShapelessRecipe(new NamespacedKey(this, "clean_potato"), new ItemStack(Material.POTATO));
         potato.addIngredient(Material.POISONOUS_POTATO);
         potato.addIngredient(Material.POISONOUS_POTATO);
         potato.addIngredient(Material.POISONOUS_POTATO);

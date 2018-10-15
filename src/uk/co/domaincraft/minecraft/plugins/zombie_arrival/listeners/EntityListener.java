@@ -180,7 +180,7 @@ public class EntityListener implements Listener{
                 zombie.setCustomName(player.getName());
                 zombie.setCustomNameVisible(true);
                 zombie.setCanPickupItems(true);
-                if(!entity.getWorld().getGameRuleValue("keepInventory").equalsIgnoreCase("true")){
+                if(!entity.getWorld().getGameRuleValue(GameRule.KEEP_INVENTORY)){
                     Inventory inventory = Bukkit.createInventory((Player)entity, 27);
                     inventory.setContents(InventoryManagement.loadInventory(plugin, (Player)entity));
                     for(int i = 0; i < inventory.getContents().length; i++){
@@ -276,9 +276,9 @@ public class EntityListener implements Listener{
             event.getPlayer().setPlayerListName(ChatColor.GOLD + "[Dev] russjr08");
         }
 
-        if(event.getPlayer().getName().equalsIgnoreCase("Krobe_")) {
-            event.getPlayer().setDisplayName(ChatColor.BLUE + "[ApSci] Krobe_");
-            event.getPlayer().setPlayerListName(ChatColor.BLUE + "[QA] Krobe_");
+        if(event.getPlayer().getName().equalsIgnoreCase("_the_meme_king_")) {
+            event.getPlayer().setDisplayName(ChatColor.BLUE + "[ApSci] _the_meme_king_");
+            event.getPlayer().setPlayerListName(ChatColor.BLUE + "[QA] _the_meme_king_");
         }
 
 	}
@@ -321,7 +321,7 @@ public class EntityListener implements Listener{
         if(event.getPlayer().getName().equalsIgnoreCase("itsNikki")){
             String message = ChatColor.AQUA + event.getMessage();
             event.setMessage(message);
-        }else if(event.getPlayer().getName().equalsIgnoreCase("Krobe_")){
+        }else if(event.getPlayer().getName().equalsIgnoreCase("_the_meme_king_")){
             String message = ChatColor.BLUE + event.getMessage();
             event.setMessage(message);
         }else if(event.getPlayer().getName().equalsIgnoreCase("dwalder01")){
@@ -339,7 +339,7 @@ public class EntityListener implements Listener{
 	@EventHandler
 	public void interactEvent(PlayerInteractEvent event){
 		if(event.getAction() == Action.RIGHT_CLICK_AIR){
-			if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.WATCH){
+			if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.CLOCK){
 				if(event.getPlayer().isOp()) {
 					event.getPlayer().getWorld().setTime(event.getPlayer().getWorld().getTime() + 200L);
 				}
@@ -368,7 +368,7 @@ public class EntityListener implements Listener{
         }
 
         if(!event.getPlayer().isSneaking() && (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)){
-            if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.WORKBENCH){
+            if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.CRAFTING_TABLE){
                 event.getPlayer().openWorkbench(event.getPlayer().getLocation(), true);
                 event.setCancelled(true);
             }else if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.CHEST && event.getPlayer().getItemInHand().getItemMeta().getDisplayName().contains("Backpack")){
@@ -444,7 +444,7 @@ public class EntityListener implements Listener{
 
         // TODO: Implement tiers of various loot collected from Giants.
 
-        return new ItemStack(Material.POTATO_ITEM);
+        return new ItemStack(Material.POTATO);
     }
 
 

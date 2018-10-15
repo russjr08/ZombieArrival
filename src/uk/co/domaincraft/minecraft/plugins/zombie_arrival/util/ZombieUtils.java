@@ -39,19 +39,19 @@ public class ZombieUtils {
                 secondaryWeapon = new ItemStack(Material.STONE_SWORD);
                 break;
             case 1:
-                primaryWeapon = new ItemStack(Material.GOLD_AXE);
-                secondaryWeapon = new ItemStack(Material.WOOD_SWORD);
+                primaryWeapon = new ItemStack(Material.GOLDEN_AXE);
+                secondaryWeapon = new ItemStack(Material.WOODEN_SWORD);
                 break;
             case 2:
                 primaryWeapon = new ItemStack(Material.IRON_AXE);
-                secondaryWeapon = new ItemStack(Material.GOLD_SWORD);
+                secondaryWeapon = new ItemStack(Material.GOLDEN_SWORD);
                 break;
             case 3:
                 primaryWeapon = new ItemStack(Material.STONE_AXE);
-                secondaryWeapon = new ItemStack(Material.WOOD_SWORD);
+                secondaryWeapon = new ItemStack(Material.WOODEN_SWORD);
                 break;
             default:
-                primaryWeapon = new ItemStack(Material.WOOD_AXE);
+                primaryWeapon = new ItemStack(Material.WOODEN_AXE);
                 secondaryWeapon = new ItemStack(Material.IRON_SWORD);
                 break;
         }
@@ -97,10 +97,10 @@ public class ZombieUtils {
             zombie.getEquipment().setLeggings(new ItemStack(Material.CHAINMAIL_LEGGINGS));
             zombie.getEquipment().setBoots(new ItemStack(Material.CHAINMAIL_BOOTS));
         } else if(equipChance < 0.9) {
-            zombie.getEquipment().setHelmet(new ItemStack(Material.GOLD_HELMET));
-            zombie.getEquipment().setChestplate(new ItemStack(Material.GOLD_CHESTPLATE));
-            zombie.getEquipment().setLeggings(new ItemStack(Material.GOLD_LEGGINGS));
-            zombie.getEquipment().setBoots(new ItemStack(Material.GOLD_BOOTS));
+            zombie.getEquipment().setHelmet(new ItemStack(Material.GOLDEN_HELMET));
+            zombie.getEquipment().setChestplate(new ItemStack(Material.GOLDEN_CHESTPLATE));
+            zombie.getEquipment().setLeggings(new ItemStack(Material.GOLDEN_LEGGINGS));
+            zombie.getEquipment().setBoots(new ItemStack(Material.GOLDEN_BOOTS));
         }
 
         zombie.setMetadata("class", new FixedMetadataValue(plugin, "assault"));

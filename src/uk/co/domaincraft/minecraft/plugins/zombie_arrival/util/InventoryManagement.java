@@ -47,7 +47,7 @@ public class InventoryManagement {
         List<ItemStack> players = new ArrayList<ItemStack>();
 
         for(Player p : plugin.getServer().getOnlinePlayers()) {
-            ItemStack playerHead = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
+            ItemStack playerHead = new ItemStack(Material.PLAYER_HEAD, 1, (short) 3);
             SkullMeta meta = (SkullMeta) playerHead.getItemMeta();
 
             meta.setOwningPlayer(p);

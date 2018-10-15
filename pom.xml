@@ -31,23 +31,12 @@
       <id>bukkit-snapshots</id>
       <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
     </repository>
-	<repository>
-      <id>TagAPI</id>
-      <url>http://repo.kitteh.org/content/repositories/public/</url>
-    </repository>
   </repositories>
   <dependencies>
   	<dependency>
   		<groupId>org.bukkit</groupId>
   		<artifactId>bukkit</artifactId>
-		<version>1.12.2-R0.1-SNAPSHOT</version>
-		<type>jar</type>
-		<scope>compile</scope>
-  	</dependency>
-	<dependency>
-  		<groupId>org.kitteh</groupId>
-  		<artifactId>tagapi</artifactId>
-		<version>RELEASE</version>
+		<version>1.13.1-R0.1-SNAPSHOT</version>
 		<type>jar</type>
 		<scope>compile</scope>
   	</dependency>

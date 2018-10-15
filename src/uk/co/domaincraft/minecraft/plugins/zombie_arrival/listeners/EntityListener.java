@@ -167,7 +167,12 @@ public class EntityListener implements Listener{
 
             if(zombie.getMetadata("class").size() >= 1 && zombie.getMetadata("class")
                     .get(0).asString().equalsIgnoreCase("kamikaze")) {
-                zombie.getWorld().createExplosion(zombie.getLocation(), 2F);
+                if(zombie.getWorld().getGameRuleValue(GameRule.MOB_GRIEFING)) {
+                    zombie.getWorld().createExplosion(zombie.getLocation(), 2F);
+                } else {
+                    zombie.getWorld().createExplosion(zombie.getLocation().getX(), zombie.getLocation().getY(), zombie.getLocation().getZ(), 2F, false, false);
+
+                }
             }
 			
 		}else if(entity instanceof Player){
@@ -259,8 +264,11 @@ public class EntityListener implements Listener{
             });
         }
 
+        player.sendMessage(String.format("%s%sSomething spooky is going on...", ChatColor.GOLD, ChatColor.ITALIC));
 
-	}
+
+
+    }
 	
 	@EventHandler
 	public void playerLogin(PlayerLoginEvent event){

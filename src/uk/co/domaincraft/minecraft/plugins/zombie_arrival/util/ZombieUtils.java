@@ -1,12 +1,16 @@
 package uk.co.domaincraft.minecraft.plugins.zombie_arrival.util;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Zombie;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.ZombieArrival;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class ZombieUtils {
@@ -104,6 +108,18 @@ public class ZombieUtils {
         }
 
         zombie.setMetadata("class", new FixedMetadataValue(plugin, "assault"));
+    }
+
+    public static List<Block> getNearbyBlocks(Location location, int radius) {
+        List<Block> blocks = new ArrayList<Block>();
+        for(int x = location.getBlockX() - radius; x <= location.getBlockX() + radius; x++) {
+            for(int y = location.getBlockY() - radius; y <= location.getBlockY() + radius; y++) {
+                for(int z = location.getBlockZ() - radius; z <= location.getBlockZ() + radius; z++) {
+                    blocks.add(location.getWorld().getBlockAt(x, y, z));
+                }
+            }
+        }
+        return blocks;
     }
 
 }

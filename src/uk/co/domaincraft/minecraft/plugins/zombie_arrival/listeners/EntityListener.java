@@ -1,10 +1,15 @@
 package uk.co.domaincraft.minecraft.plugins.zombie_arrival.listeners;
 
 import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -15,16 +20,16 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.material.MaterialData;
+import org.bukkit.material.Skull;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.ZombieArrival;
+import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.Constants;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.InventoryManagement;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.ZombieUtils;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class EntityListener implements Listener{
 	
@@ -226,7 +231,11 @@ public class EntityListener implements Listener{
 
                 zombie.getWorld().playEffect(zombie.getLocation(), Effect.SMOKE, 5);
 
-
+                for(Block block : ZombieUtils.getNearbyBlocks(event.getTarget().getLocation(), Constants.WARDING_DISTANCE)) {
+                    if(block.getType() == Material.JACK_O_LANTERN) {
+                        event.setCancelled(true);
+                    }
+                }
 
             }
 
@@ -292,7 +301,78 @@ public class EntityListener implements Listener{
 	}
 
 
-	
+	@EventHandler
+    public void blockPlaceEvent(final BlockPlaceEvent event) {
+        if(event.getBlock().getType() == Material.JACK_O_LANTERN) {
+            Location aboveBlock = event.getBlock().getLocation();
+            aboveBlock.setY(aboveBlock.getBlockY() + 1);
+
+
+            final HashMap<Location, BlockData> affectedBlocks = new HashMap<Location, BlockData>();
+
+            for(Location loc : getCornersFromCenter(Constants.WARDING_DISTANCE, event.getBlock().getLocation())) {
+                affectedBlocks.put(loc, loc.getBlock().getBlockData());
+                event.getPlayer().sendBlockChange(loc, Bukkit.createBlockData(Material.GLOWSTONE));
+                event.getPlayer().playEffect(loc, Effect.STEP_SOUND, 17);
+
+            }
+
+            affectedBlocks.put(aboveBlock, aboveBlock.getBlock().getBlockData());
+
+            event.getPlayer().sendBlockChange(aboveBlock, Bukkit.createBlockData(Material.ZOMBIE_HEAD));
+
+            event.getPlayer().sendMessage(ChatColor.DARK_GREEN + "Ward created.");
+
+            event.getPlayer().sendMessage(ChatColor.ITALIC + "An ancient spell temporarily reveals the bounds of this ward...");
+
+            // Reverts block changes to original blocks.
+            Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
+                @Override
+                public void run() {
+                    for(Map.Entry<Location, BlockData> entry : affectedBlocks.entrySet()) {
+                        event.getPlayer().sendBlockChange(entry.getKey(), entry.getValue());
+                        event.getPlayer().playEffect(entry.getKey(), Effect.STEP_SOUND, 17);
+
+                    }
+                }
+            }, 100);
+
+
+
+
+        }
+    }
+
+
+
+    private ArrayList<Location> getCornersFromCenter(int distance, Location centerPoint) {
+        ArrayList<Location> locations = new ArrayList<Location>();
+        Location topLeft = centerPoint.clone();
+        topLeft.setX(centerPoint.getX() + distance);
+        topLeft.setZ(centerPoint.getZ() + distance);
+
+        locations.add(topLeft);
+
+        Location topRight = centerPoint.clone();
+        topRight.setX(centerPoint.getX() - distance);
+        topRight.setZ(centerPoint.getZ() - distance);
+
+        locations.add(topRight);
+
+        Location loc3 = centerPoint.clone();
+        loc3.setZ(centerPoint.getZ() - distance);
+        loc3.setX(centerPoint.getX() + distance);
+
+        locations.add(loc3);
+
+        Location loc4 = centerPoint.clone();
+        loc4.setZ(centerPoint.getZ() + distance);
+        loc4.setX(centerPoint.getX() - distance);
+
+        locations.add(loc4);
+
+        return locations;
+    }
 
 	
 	@EventHandler

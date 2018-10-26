@@ -382,14 +382,6 @@ public class EntityListener implements Listener{
 				ItemStack stack = event.getPlayer().getInventory().getItemInMainHand();
 				stack.setAmount(stack.getAmount() - 1);
 				event.getPlayer().getInventory().setItemInMainHand(stack);
-			}else if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.COMPASS){
-				if(event.getPlayer().getBedSpawnLocation() != null) {
-					event.getPlayer().teleport(event.getPlayer().getBedSpawnLocation());
-				} else {
-				    event.getPlayer().sendMessage(ChatColor.RED + "You have not slept yet to set your bed, teleport cancelled.");
-                }
-            } else if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.COMPASS) {
-
 			}
 		}else if(event.getAction() == Action.LEFT_CLICK_AIR){
             if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.COMPASS){
@@ -431,11 +423,13 @@ public class EntityListener implements Listener{
 		if(event.getInventory().getTitle().equalsIgnoreCase("Player List")) {
 			event.setCancelled(true);
 			if(event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
-                plugin.getServer().getPlayer(event.getWhoClicked().getUniqueId())
-                        .setCompassTarget(plugin.getServer()
-                                .getPlayer(ChatColor.stripColor(event.getCurrentItem().getItemMeta().getDisplayName()))
-                                .getLocation());
 
+                for(Player p : plugin.getServer().getOnlinePlayers()) {
+                    if(p.getDisplayName().contains(ChatColor.stripColor(event.getCurrentItem().getItemMeta().getDisplayName()))) {
+                        ((Player) event.getWhoClicked()).setCompassTarget(p.getLocation());
+                        break;
+                    }
+                }
             }
 
 		}

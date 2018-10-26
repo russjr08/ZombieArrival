@@ -1,17 +1,16 @@
 package uk.co.domaincraft.minecraft.plugins.zombie_arrival.util;
 
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.ZombieArrival;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class ZombieUtils {
 
@@ -120,6 +119,70 @@ public class ZombieUtils {
             }
         }
         return blocks;
+    }
+
+    public static void showWardingBoundary(final Player player, ZombieArrival plugin, Location center) {
+
+
+        Location aboveBlock = center.clone();
+        aboveBlock.setY(aboveBlock.getBlockY() + 1);
+
+
+        final HashMap<Location, BlockData> affectedBlocks = new HashMap<Location, BlockData>();
+
+        for(Location loc : getCornersFromCenter(Constants.WARDING_DISTANCE, center)) {
+            affectedBlocks.put(loc, loc.getBlock().getBlockData());
+            player.sendBlockChange(loc, Bukkit.createBlockData(Material.GLOWSTONE));
+            player.playEffect(loc, Effect.STEP_SOUND, 17);
+
+        }
+
+        affectedBlocks.put(aboveBlock, aboveBlock.getBlock().getBlockData());
+
+        player.sendBlockChange(aboveBlock, Bukkit.createBlockData(Material.ZOMBIE_HEAD));
+
+        player.sendMessage(ChatColor.ITALIC + "An ancient spell temporarily reveals the bounds of this ward...");
+
+        // Reverts block changes to original blocks.
+        Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
+            @Override
+            public void run() {
+                for(Map.Entry<Location, BlockData> entry : affectedBlocks.entrySet()) {
+                    player.sendBlockChange(entry.getKey(), entry.getValue());
+                    player.playEffect(entry.getKey(), Effect.STEP_SOUND, 17);
+
+                }
+            }
+        }, 100);
+    }
+
+    private static ArrayList<Location> getCornersFromCenter(int distance, Location centerPoint) {
+        ArrayList<Location> locations = new ArrayList<Location>();
+        Location topLeft = centerPoint.clone();
+        topLeft.setX(centerPoint.getX() + distance);
+        topLeft.setZ(centerPoint.getZ() + distance);
+
+        locations.add(topLeft);
+
+        Location topRight = centerPoint.clone();
+        topRight.setX(centerPoint.getX() - distance);
+        topRight.setZ(centerPoint.getZ() - distance);
+
+        locations.add(topRight);
+
+        Location loc3 = centerPoint.clone();
+        loc3.setZ(centerPoint.getZ() - distance);
+        loc3.setX(centerPoint.getX() + distance);
+
+        locations.add(loc3);
+
+        Location loc4 = centerPoint.clone();
+        loc4.setZ(centerPoint.getZ() + distance);
+        loc4.setX(centerPoint.getX() - distance);
+
+        locations.add(loc4);
+
+        return locations;
     }
 
 }

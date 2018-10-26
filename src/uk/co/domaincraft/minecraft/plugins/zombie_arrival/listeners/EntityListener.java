@@ -16,6 +16,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.player.PlayerLoginEvent.Result;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -234,6 +235,8 @@ public class EntityListener implements Listener{
                 for(Block block : ZombieUtils.getNearbyBlocks(event.getTarget().getLocation(), Constants.WARDING_DISTANCE)) {
                     if(block.getType() == Material.JACK_O_LANTERN) {
                         event.setCancelled(true);
+                        event.setTarget(null);
+                        break;
                     }
                 }
 
@@ -304,75 +307,17 @@ public class EntityListener implements Listener{
 	@EventHandler
     public void blockPlaceEvent(final BlockPlaceEvent event) {
         if(event.getBlock().getType() == Material.JACK_O_LANTERN) {
-            Location aboveBlock = event.getBlock().getLocation();
-            aboveBlock.setY(aboveBlock.getBlockY() + 1);
-
-
-            final HashMap<Location, BlockData> affectedBlocks = new HashMap<Location, BlockData>();
-
-            for(Location loc : getCornersFromCenter(Constants.WARDING_DISTANCE, event.getBlock().getLocation())) {
-                affectedBlocks.put(loc, loc.getBlock().getBlockData());
-                event.getPlayer().sendBlockChange(loc, Bukkit.createBlockData(Material.GLOWSTONE));
-                event.getPlayer().playEffect(loc, Effect.STEP_SOUND, 17);
-
-            }
-
-            affectedBlocks.put(aboveBlock, aboveBlock.getBlock().getBlockData());
-
-            event.getPlayer().sendBlockChange(aboveBlock, Bukkit.createBlockData(Material.ZOMBIE_HEAD));
-
             event.getPlayer().sendMessage(ChatColor.DARK_GREEN + "Ward created.");
 
-            event.getPlayer().sendMessage(ChatColor.ITALIC + "An ancient spell temporarily reveals the bounds of this ward...");
-
-            // Reverts block changes to original blocks.
-            Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
-                @Override
-                public void run() {
-                    for(Map.Entry<Location, BlockData> entry : affectedBlocks.entrySet()) {
-                        event.getPlayer().sendBlockChange(entry.getKey(), entry.getValue());
-                        event.getPlayer().playEffect(entry.getKey(), Effect.STEP_SOUND, 17);
-
-                    }
-                }
-            }, 100);
-
-
-
+            ZombieUtils.showWardingBoundary(event.getPlayer(), plugin, event.getBlockPlaced().getLocation());
 
         }
     }
 
 
 
-    private ArrayList<Location> getCornersFromCenter(int distance, Location centerPoint) {
-        ArrayList<Location> locations = new ArrayList<Location>();
-        Location topLeft = centerPoint.clone();
-        topLeft.setX(centerPoint.getX() + distance);
-        topLeft.setZ(centerPoint.getZ() + distance);
 
-        locations.add(topLeft);
 
-        Location topRight = centerPoint.clone();
-        topRight.setX(centerPoint.getX() - distance);
-        topRight.setZ(centerPoint.getZ() - distance);
-
-        locations.add(topRight);
-
-        Location loc3 = centerPoint.clone();
-        loc3.setZ(centerPoint.getZ() - distance);
-        loc3.setX(centerPoint.getX() + distance);
-
-        locations.add(loc3);
-
-        Location loc4 = centerPoint.clone();
-        loc4.setZ(centerPoint.getZ() + distance);
-        loc4.setX(centerPoint.getX() - distance);
-
-        locations.add(loc4);
-
-        return locations;
-    }
 
 	
 	@EventHandler
@@ -470,6 +415,12 @@ public class EntityListener implements Listener{
                 event.setCancelled(true);
 
             }
+
+        }
+
+        if(event.getHand() == EquipmentSlot.HAND && event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock().getType() == Material.JACK_O_LANTERN) {
+            ZombieUtils.showWardingBoundary(event.getPlayer(), plugin, event.getClickedBlock().getLocation());
+            event.setCancelled(true);
 
         }
 	}

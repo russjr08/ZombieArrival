@@ -59,7 +59,10 @@ public class EntityListener implements Listener{
 		if((event.getEntity() instanceof Monster) && !(event.getEntity() instanceof Zombie
                 || event.getEntity() instanceof Giant)){
 			event.setCancelled(true);
-            event.getEntity().getWorld().spawnEntity(event.getEntity().getLocation(), EntityType.ZOMBIE);
+            Zombie zombie = (Zombie) event.getEntity().getWorld().spawnEntity(event.getEntity().getLocation(), EntityType.ZOMBIE);
+            if(event.getEntity() instanceof Silverfish) {
+                zombie.setBaby(true);
+            }
         }else if(event.getEntityType() == EntityType.ZOMBIE){
 			Zombie zombie = (Zombie) event.getEntity();
 			ItemStack zombieHelmet = new ItemStack(Material.LEATHER_HELMET);

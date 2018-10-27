@@ -350,8 +350,8 @@ public class EntityListener implements Listener{
         }else if(event.getPlayer().getName().equalsIgnoreCase("_the_meme_king_")){
             String message = ChatColor.BLUE + event.getMessage();
             event.setMessage(message);
-        }else if(event.getPlayer().getName().equalsIgnoreCase("dwalder01")){
-            String message = ChatColor.BLUE + event.getMessage();
+        }else if(event.getPlayer().getName().equalsIgnoreCase("PizzaRolls_ ")){
+            String message = ChatColor.DARK_PURPLE + event.getMessage();
             event.setMessage(message);
         }else if(event.getPlayer().getName().equalsIgnoreCase("The_Flame98")){
             String message = ChatColor.AQUA + event.getMessage();

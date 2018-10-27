@@ -36,15 +36,27 @@ public class EntityListener implements Listener{
 	
 	private ZombieArrival plugin;
 
+	private static ArrayList<Class<? extends Entity>> blacklistedMobTypes = new ArrayList<Class<? extends Entity>>();
+
 
     public EntityListener(ZombieArrival plugin){
 		this.plugin = plugin;
+		blacklistedMobTypes.add(Phantom.class);
+		blacklistedMobTypes.add(Slime.class);
 	}
 	
 	
 	@EventHandler
 	public void creatureSpawn(CreatureSpawnEvent event){
-		if(event.getEntity() instanceof Monster && !(event.getEntity() instanceof Zombie
+        for(Class clazz : blacklistedMobTypes) {
+
+            //noinspection unchecked
+            if(clazz.isAssignableFrom(event.getEntity().getClass())) {
+                event.setCancelled(true);
+                event.getEntity().getWorld().spawnEntity(event.getEntity().getLocation(), EntityType.ZOMBIE);
+            }
+        }
+		if((event.getEntity() instanceof Monster) && !(event.getEntity() instanceof Zombie
                 || event.getEntity() instanceof Giant)){
 			event.setCancelled(true);
             event.getEntity().getWorld().spawnEntity(event.getEntity().getLocation(), EntityType.ZOMBIE);

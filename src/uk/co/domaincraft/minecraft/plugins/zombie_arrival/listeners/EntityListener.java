@@ -367,7 +367,13 @@ public class EntityListener implements Listener{
 
 	}
 	
-	
+	@EventHandler
+    public void playerConsumptionEvent(PlayerItemConsumeEvent event) {
+        if(event.getItem().getType() == Material.PUMPKIN_PIE && event.getPlayer().hasPotionEffect(PotionEffectType.POISON)) {
+            event.getPlayer().removePotionEffect(PotionEffectType.POISON);
+            event.getPlayer().sendMessage(ChatColor.AQUA + "You have been cured!");
+        }
+    }
 	
 	@EventHandler
 	public void interactEvent(PlayerInteractEvent event){
@@ -376,12 +382,6 @@ public class EntityListener implements Listener{
 				if(event.getPlayer().isOp()) {
 					event.getPlayer().getWorld().setTime(event.getPlayer().getWorld().getTime() + 200L);
 				}
-			}else if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.PUMPKIN_SEEDS && event.getPlayer().hasPotionEffect(PotionEffectType.POISON)){
-				event.getPlayer().removePotionEffect(PotionEffectType.POISON);
-				event.getPlayer().sendMessage(ChatColor.AQUA + "You have been cured!");
-				ItemStack stack = event.getPlayer().getInventory().getItemInMainHand();
-				stack.setAmount(stack.getAmount() - 1);
-				event.getPlayer().getInventory().setItemInMainHand(stack);
 			}
 		}else if(event.getAction() == Action.LEFT_CLICK_AIR){
             if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.COMPASS){

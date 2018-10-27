@@ -69,34 +69,12 @@ public class EntityListener implements Listener{
 			Random rand = new Random();
 
 			int color1, color2, color3;
-			float clusterChance;
 
 			color1 = rand.nextInt(255);
 			color2 = rand.nextInt(255);
 			color3 = rand.nextInt(255);
 
-			clusterChance = rand.nextFloat();
-			
-			if(clusterChance <= 0.02F){
-				
-				for(int i = 0;i < 5; i++){
-					event.getEntity().getWorld().spawnEntity(zombie.getLocation(), EntityType.ZOMBIE);
-                    event.getEntity().getWorld().strikeLightningEffect(zombie.getLocation());
-			
-				}
-				if(event.getEntity().getLocation().getY() > 60 && event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.CUSTOM){
-                    event.getEntity().getWorld().spawnEntity(zombie.getLocation(), EntityType.GIANT);
-
-                    for(Player p : plugin.getServer().getOnlinePlayers()) {
-                        if(p.getLocation().distance(event.getLocation()) <= 60) {
-                            p.sendMessage(ChatColor.DARK_GREEN + ChatColor.ITALIC.toString()
-                                    + "A foul essence travels through the air...");
-                        }
-                    }
-                }
-
-				
-			}
+			ZombieUtils.spawnHordeWithChance(0.02f, zombie.getLocation(), event.getSpawnReason(), plugin.getServer());
 
 			
 			colorArmor(zombieHelmet, color1, color2, color3);
@@ -404,6 +382,10 @@ public class EntityListener implements Listener{
                         "Player List");
                 inv.setContents(InventoryManagement.getStackOfOnlinePlayers(plugin));
                 event.getPlayer().openInventory(inv);
+            }
+        } else if(event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.FIREWORK_ROCKET) {
+                ZombieUtils.spawnHordeWithChance(0.10f, event.getPlayer().getLocation(), CreatureSpawnEvent.SpawnReason.CUSTOM, event.getPlayer().getServer());
             }
         }
 

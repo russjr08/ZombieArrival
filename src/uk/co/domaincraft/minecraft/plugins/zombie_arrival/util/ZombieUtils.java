@@ -4,8 +4,10 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.ZombieArrival;
@@ -119,6 +121,31 @@ public class ZombieUtils {
             }
         }
         return blocks;
+    }
+
+    public static void spawnHordeWithChance(float chance, Location location, CreatureSpawnEvent.SpawnReason reason, Server server) {
+        float clusterChance = rand.nextFloat();
+
+        if(clusterChance <= chance){
+
+            for(int i = 0;i < 5; i++){
+                location.getWorld().spawnEntity(location, EntityType.ZOMBIE);
+                location.getWorld().strikeLightningEffect(location);
+
+            }
+            if(location.getY() > 60 && reason != CreatureSpawnEvent.SpawnReason.CUSTOM){
+                location.getWorld().spawnEntity(location, EntityType.GIANT);
+
+                for(Player p : server.getOnlinePlayers()) {
+                    if(p.getLocation().distance(location) <= 60) {
+                        p.sendMessage(ChatColor.DARK_GREEN + ChatColor.ITALIC.toString()
+                                + "A foul essence travels through the air...");
+                    }
+                }
+            }
+
+
+        }
     }
 
     public static void showWardingBoundary(final Player player, ZombieArrival plugin, Location center) {

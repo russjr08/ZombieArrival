@@ -1,5 +1,6 @@
 package uk.co.domaincraft.minecraft.plugins.zombie_arrival.listeners;
 
+import com.kronosad.api.internet.ReadURL;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
@@ -269,7 +270,20 @@ public class EntityListener implements Listener{
             });
         }
 
-        player.sendMessage(String.format("%s%sSomething spooky is going on...", ChatColor.GOLD, ChatColor.ITALIC));
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, new Runnable() {
+            @Override
+            public void run() {
+                ReadURL urlReader = new ReadURL("https://api.kronosad.com/minecraft/ZombieArrival/motd.txt");
+                try {
+                    String motd = urlReader.read();
+                    player.sendMessage(String.format("%s%s%s", ChatColor.GOLD, ChatColor.ITALIC, motd));
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
 
 
 
@@ -319,7 +333,7 @@ public class EntityListener implements Listener{
 			if(event.getMessage().equalsIgnoreCase("!kill")){
 			    int numOfNamedZombies = 0;
 				for(Entity e : event.getPlayer().getWorld().getEntities()){
-					if(e instanceof LivingEntity && (e instanceof Zombie || e instanceof Giant)){
+					if((e instanceof Zombie || e instanceof Giant)){
 						LivingEntity ent = (LivingEntity)e;
 						if(e.getCustomName() != null) {
 						    numOfNamedZombies++;
@@ -333,7 +347,7 @@ public class EntityListener implements Listener{
 				event.getPlayer().sendMessage(String.format("%s%sWarning: %d Zombies were not cleared due to being named.", ChatColor.DARK_GRAY, ChatColor.ITALIC, numOfNamedZombies));
 			}else if(event.getMessage().equalsIgnoreCase("!drops")){
 				for(Entity e : event.getPlayer().getWorld().getEntities()){
-					if(e != null && e instanceof Item){
+					if(e instanceof Item){
 						e.remove();
 					}
 				}

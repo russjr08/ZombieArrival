@@ -94,7 +94,7 @@ public class ZombieArrival extends JavaPlugin {
                 }
             }
         });
-
+        sayHelloToDomainCrafting();
 
     }
 
@@ -110,6 +110,12 @@ public class ZombieArrival extends JavaPlugin {
         Logger.log("EnderPearl Recipe Added");
 
 
+    }
+
+    private void sayHelloToDomainCrafting() {
+	    if(getServer().getPluginManager().getPlugin("DomainCrafting") != null) {
+	        Logger.log("Oh, hello there DomainCrafting!");
+        }
     }
 	
 	@Override

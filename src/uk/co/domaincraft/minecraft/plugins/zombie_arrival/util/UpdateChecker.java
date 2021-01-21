@@ -20,11 +20,11 @@ public class UpdateChecker {
     public boolean needsUpdate() throws Exception {
 
         if(this.releaseType == ReleaseType.ALPHA){
-            readURL = new ReadURL("http://api.kronosad.com/minecraft/ZombieArrival/Alpha/update.txt");
+            readURL = new ReadURL("https://api.kronosad.com/minecraft/ZombieArrival/Alpha/update.txt");
         }else if(this.releaseType == ReleaseType.BETA){
-            readURL = new ReadURL("http://api.kronosad.com/minecraft/ZombieArrival/Beta/update.txt");
+            readURL = new ReadURL("https://api.kronosad.com/minecraft/ZombieArrival/Beta/update.txt");
         }else if(this.releaseType == ReleaseType.RELEASE){
-            readURL = new ReadURL("http://api.kronosad.com/minecraft/ZombieArrival/Release/update.txt");
+            readURL = new ReadURL("https://api.kronosad.com/minecraft/ZombieArrival/Release/update.txt");
         }
 
         String serverString = readURL.read();

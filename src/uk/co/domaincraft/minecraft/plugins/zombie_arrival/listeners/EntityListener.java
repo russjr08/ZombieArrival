@@ -3,11 +3,8 @@ package uk.co.domaincraft.minecraft.plugins.zombie_arrival.listeners;
 import com.kronosad.api.internet.ReadURL;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.Directional;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -22,23 +19,24 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.material.MaterialData;
-import org.bukkit.material.Skull;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.ZombieArrival;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.Constants;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.InventoryManagement;
+import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.Logger;
 import uk.co.domaincraft.minecraft.plugins.zombie_arrival.util.ZombieUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Map;
+import java.util.Random;
 
 public class EntityListener implements Listener{
 	
 	private ZombieArrival plugin;
 
 	private static ArrayList<Class<? extends Entity>> blacklistedMobTypes = new ArrayList<Class<? extends Entity>>();
-
 
     public EntityListener(ZombieArrival plugin){
 		this.plugin = plugin;
@@ -137,7 +135,6 @@ public class EntityListener implements Listener{
 				if(event.getCause() == DamageCause.FIRE || event.getCause() == DamageCause.FIRE_TICK){
 					event.setCancelled(true);
 					event.getEntity().setFireTicks(0);
-					//Logger.log("Day time. Zombie can't be burned!");
 				}
 			}
 		}
@@ -151,10 +148,8 @@ public class EntityListener implements Listener{
 	
 	@EventHandler
 	public void deathEvent(EntityDeathEvent event){
-		Entity entity = event.getEntity();
+		LivingEntity entity = event.getEntity();
 		if(entity instanceof Zombie){
-
-			LivingEntity zombie = (LivingEntity)entity;
 
             for(Map.Entry<ItemStack, Double> entry : plugin.zombieLoot.entrySet()) {
                 ItemStack stack = entry.getKey();
@@ -165,41 +160,39 @@ public class EntityListener implements Listener{
                 }
             }
 
-            if(zombie.getMetadata("class").size() >= 1 && zombie.getMetadata("class")
+            if(entity.getMetadata("class").size() >= 1 && entity.getMetadata("class")
                     .get(0).asString().equalsIgnoreCase("kamikaze")) {
-                if(zombie.getWorld().getGameRuleValue(GameRule.MOB_GRIEFING)) {
-                    zombie.getWorld().createExplosion(zombie.getLocation(), 2F);
+                if(entity.getWorld().getGameRuleValue(GameRule.MOB_GRIEFING)) {
+                    entity.getWorld().createExplosion(entity.getLocation(), 2F);
                 } else {
-                    zombie.getWorld().createExplosion(zombie.getLocation().getX(), zombie.getLocation().getY(), zombie.getLocation().getZ(), 2F, false, false);
+                    entity.getWorld().createExplosion(entity.getLocation().getX(), entity.getLocation().getY(),
+                            entity.getLocation().getZ(), 2F, false, false);
 
                 }
             }
 			
 		}else if(entity instanceof Player){
 			Player player = (Player)entity;
-			if(player.getName().equalsIgnoreCase("pineapple95")){
-				specialDeath(player);
-				
-			}else{
-				Zombie zombie = (Zombie)player.getWorld().spawnEntity(player.getLocation(), EntityType.ZOMBIE);
-                zombie.setCustomName(player.getName());
-                zombie.setCustomNameVisible(true);
-                zombie.setCanPickupItems(true);
-                if(!entity.getWorld().getGameRuleValue(GameRule.KEEP_INVENTORY)){
-                    Inventory inventory = Bukkit.createInventory((Player)entity, 27);
-                    inventory.setContents(InventoryManagement.loadInventory(plugin, (Player)entity));
-                    for(int i = 0; i < inventory.getContents().length; i++){
-                        if(inventory.getContents()[i] != null){
-                            entity.getWorld().dropItemNaturally(entity.getLocation(), inventory.getContents()[i]);
 
-                        }
-                        inventory.setItem(i, new ItemStack(Material.AIR));
-
+            Zombie zombie = (Zombie)player.getWorld().spawnEntity(player.getLocation(), EntityType.ZOMBIE);
+            zombie.setCustomName(player.getName());
+            zombie.setCustomNameVisible(true);
+            zombie.setCanPickupItems(true);
+            if(!entity.getWorld().getGameRuleValue(GameRule.KEEP_INVENTORY)){
+                Inventory inventory = Bukkit.createInventory((Player)entity, 27);
+                inventory.setContents(InventoryManagement.loadInventory(plugin, (Player)entity));
+                for(int i = 0; i < inventory.getContents().length; i++){
+                    if(inventory.getContents()[i] != null){
+                        entity.getWorld().dropItemNaturally(entity.getLocation(), inventory.getContents()[i]);
 
                     }
-                    InventoryManagement.saveInventory(plugin, (Player)entity, inventory);
+                    inventory.setItem(i, new ItemStack(Material.AIR));
+
+
                 }
-			}
+                InventoryManagement.saveInventory(plugin, (Player)entity, inventory);
+            }
+
 		}else if(entity instanceof Giant){
             ItemStack treasure = tieredGiantLoot();
             ItemMeta treasureMeta = treasure.getItemMeta();
@@ -264,7 +257,8 @@ public class EntityListener implements Listener{
                                     plugin.updateChecker.getLocalVersion()));
                         }
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        Logger.warn("Couldn't check for updates, the ZombieArrival API might be offline: "
+                                + e.getMessage());
                     }
                 }
             });
@@ -279,7 +273,8 @@ public class EntityListener implements Listener{
                     player.sendMessage(String.format("%s%s%s", ChatColor.GOLD, ChatColor.ITALIC, motd));
 
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    Logger.warn("Couldn't check for the current MOTD, the ZombieArrival API might be offline: "
+                            + e.getMessage());
                 }
             }
         });
@@ -322,13 +317,8 @@ public class EntityListener implements Listener{
     }
 
 
-
-
-
-
-	
 	@EventHandler
-	public void chatEvent(PlayerChatEvent event){
+	public void chatEvent(AsyncPlayerChatEvent event){
 		if(event.getPlayer().isOp()){
 			if(event.getMessage().equalsIgnoreCase("!kill")){
 			    int numOfNamedZombies = 0;
@@ -363,9 +353,6 @@ public class EntityListener implements Listener{
             event.setMessage(message);
         }else if(event.getPlayer().getName().equalsIgnoreCase("_the_meme_king_")){
             String message = ChatColor.BLUE + event.getMessage();
-            event.setMessage(message);
-        }else if(event.getPlayer().getName().equalsIgnoreCase("PizzaRolls_ ")){
-            String message = ChatColor.DARK_PURPLE + event.getMessage();
             event.setMessage(message);
         }else if(event.getPlayer().getName().equalsIgnoreCase("The_Flame98")){
             String message = ChatColor.AQUA + event.getMessage();
@@ -455,17 +442,6 @@ public class EntityListener implements Listener{
         }
     }
 
-
-
-
-
-
-
-	
-	
-
-	
-	
 	private ItemStack colorArmor(ItemStack stack, int r, int g, int b){
 		
 		LeatherArmorMeta meta = (LeatherArmorMeta)stack.getItemMeta();
@@ -476,13 +452,7 @@ public class EntityListener implements Listener{
 		
 		return stack;
 	}
-	
-	private void specialDeath(Player player){
-		player.setHealth(1);
-		player.setExhaustion(5F);
-		player.getWorld().playEffect(player.getLocation(), Effect.MOBSPAWNER_FLAMES, 5F);
-		player.teleport(player.getWorld().getSpawnLocation());
-	}
+
 
     private ItemStack tieredGiantLoot(){
 

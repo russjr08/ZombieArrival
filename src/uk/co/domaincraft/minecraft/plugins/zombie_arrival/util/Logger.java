@@ -8,5 +8,8 @@ public class Logger {
 	public static void log(String contents){
 		log.info("[" + ZombieArrival.pluginName + "] " + contents);
 	}
+	public static void warn(String contents) {
+		log.warning("[" + ZombieArrival.pluginName + "] " + contents);
+	}
 	
 }

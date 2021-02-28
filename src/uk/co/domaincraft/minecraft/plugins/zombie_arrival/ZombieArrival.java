@@ -77,21 +77,18 @@ public class ZombieArrival extends JavaPlugin {
         Logger.log(ArrayUtils.toString(zombieLoot));
 
         addEnderRecipe();
-        Bukkit.getScheduler().runTask(this, new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if(updateChecker.needsUpdate()) {
-                        Logger.log(String.format("Plugin is out of date! %s > %s (%s)",
-                                updateChecker.getServerVersion(), updateChecker.getLocalVersion(), updateChecker.getReleaseType()));
-                    } else {
-                        Logger.log(String.format("Plugin is up to date! %s <= %s (%s)",
-                                updateChecker.getServerVersion(), updateChecker.getLocalVersion(), updateChecker.getReleaseType()));
-                    }
-                } catch (Exception e) {
-                    Logger.log("Error checking for update!");
-                    e.printStackTrace();
+        Bukkit.getScheduler().runTask(this, () -> {
+            try {
+                if(updateChecker.needsUpdate()) {
+                    Logger.log(String.format("Plugin is out of date! %s > %s (%s)",
+                            updateChecker.getServerVersion(), updateChecker.getLocalVersion(), updateChecker.getReleaseType()));
+                } else {
+                    Logger.log(String.format("Plugin is up to date! %s <= %s (%s)",
+                            updateChecker.getServerVersion(), updateChecker.getLocalVersion(), updateChecker.getReleaseType()));
                 }
+            } catch (Exception e) {
+                Logger.log("Error checking for update!");
+                e.printStackTrace();
             }
         });
         sayHelloToDomainCrafting();

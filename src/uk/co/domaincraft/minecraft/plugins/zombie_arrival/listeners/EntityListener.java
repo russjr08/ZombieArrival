@@ -17,6 +17,7 @@ import org.bukkit.event.player.PlayerLoginEvent.Result;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
@@ -396,6 +397,14 @@ public class EntityListener implements Listener{
             if(event.getPlayer().getInventory().getItemInMainHand().getType() == Material.FIREWORK_ROCKET) {
                 ZombieUtils.spawnHordeWithChance(0.10f, event.getPlayer().getLocation(), CreatureSpawnEvent.SpawnReason.CUSTOM, event.getPlayer().getServer());
             }
+            if(event.getClickedBlock() != null && event.getPlayer().getInventory().getItemInMainHand().getType() == Material.SHEARS) {
+                if(event.getClickedBlock().getType() == Material.BONE_BLOCK) {
+                    Random rand = new Random();
+                    event.getClickedBlock().getWorld().dropItemNaturally(event.getClickedBlock().getLocation(), new ItemStack(Material.BONE, rand.nextInt(5) + 1));
+                    event.getClickedBlock().setType(Material.AIR);
+                    damageHeldItem(event.getPlayer());
+                }
+            }
         }
 
         if(!event.getPlayer().isSneaking() && (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)){
@@ -423,8 +432,26 @@ public class EntityListener implements Listener{
         }
 	}
 
+    private void damageHeldItem(Player player) {
+        if(player.getGameMode() != GameMode.CREATIVE) {
 
-	@EventHandler
+            Damageable itemMeta = (Damageable) player.getInventory().getItemInMainHand().getItemMeta();
+
+            itemMeta.setDamage(itemMeta.getDamage() + 5);
+
+            // Check to see if the player's pickaxe will be past the max durability, and delete it if so.
+            if (itemMeta.getDamage() > player.getInventory().getItemInMainHand().getType().getMaxDurability()) {
+                player.getInventory().getItemInMainHand().setAmount(0);
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1F, 1F);
+            } else {
+                player.getInventory().getItemInMainHand().setItemMeta((ItemMeta) itemMeta);
+            }
+        }
+    }
+
+
+
+    @EventHandler
 	public void inventoryClicked(InventoryClickEvent event) {
 		if(event.getView().getTitle().equalsIgnoreCase("Player List")) {
 			event.setCancelled(true);

@@ -34,7 +34,7 @@ import java.util.Random;
 
 public class EntityListener implements Listener{
 	
-	private ZombieArrival plugin;
+	private final ZombieArrival plugin;
 
 	private static ArrayList<Class<? extends Entity>> blacklistedMobTypes = new ArrayList<Class<? extends Entity>>();
 
@@ -144,6 +144,14 @@ public class EntityListener implements Listener{
 			player.setPlayerListName(ChatColor.DARK_GREEN + player.getName() + " " + player.getHealth());
 		}
 	}
+
+	@EventHandler
+    public void healthRegained(EntityRegainHealthEvent event) {
+        if(event.getEntityType() == EntityType.PLAYER){
+            Player player = (Player)event.getEntity();
+            player.setPlayerListName(ChatColor.DARK_GREEN + player.getName() + " " + player.getHealth());
+        }
+    }
 
 	
 	@EventHandler
@@ -298,7 +306,7 @@ public class EntityListener implements Listener{
             event.getPlayer().setPlayerListName(ChatColor.GOLD + "[Dev] russjr08");
         }
 
-        if(event.getPlayer().getName().equalsIgnoreCase("_the_meme_king_")) {
+        if(event.getPlayer().getName().equalsIgnoreCase("michaelthesad")) {
             event.getPlayer().setDisplayName(ChatColor.BLUE + "[ApSci] _the_meme_king_");
             event.getPlayer().setPlayerListName(ChatColor.BLUE + "[QA] _the_meme_king_");
         }
@@ -417,8 +425,8 @@ public class EntityListener implements Listener{
 
 
 	@EventHandler
-	public void inventoryHandler(InventoryClickEvent event) {
-		if(event.getInventory().getTitle().equalsIgnoreCase("Player List")) {
+	public void inventoryClicked(InventoryClickEvent event) {
+		if(event.getView().getTitle().equalsIgnoreCase("Player List")) {
 			event.setCancelled(true);
 			if(event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
 
@@ -434,9 +442,10 @@ public class EntityListener implements Listener{
 	}
 
     @EventHandler
-    public void inventoryClose(InventoryCloseEvent event){
-        if(event.getInventory().getName().equalsIgnoreCase("Portable Chest") && event.getInventory() != null){
-            InventoryManagement.saveInventory(plugin, (Player)event.getPlayer(), event.getInventory());
+    public void inventoryClosed(InventoryCloseEvent event){
+        if(event.getView().getTitle().equalsIgnoreCase("Portable Chest")) {
+            event.getInventory();
+            InventoryManagement.saveInventory(plugin, (Player) event.getPlayer(), event.getInventory());
             ((Player) event.getPlayer()).playSound(event.getPlayer().getLocation(), Sound.BLOCK_CHEST_CLOSE, 100f, 0f);
 
         }
@@ -445,11 +454,12 @@ public class EntityListener implements Listener{
 	private ItemStack colorArmor(ItemStack stack, int r, int g, int b){
 		
 		LeatherArmorMeta meta = (LeatherArmorMeta)stack.getItemMeta();
-		
-		meta.setColor(org.bukkit.Color.fromRGB(r, g, b));
-		
-		stack.setItemMeta(meta);
-		
+
+		if(meta != null) {
+            meta.setColor(org.bukkit.Color.fromRGB(r, g, b));
+            stack.setItemMeta(meta);
+        }
+
 		return stack;
 	}
 

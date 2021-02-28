@@ -141,20 +141,7 @@ public class EntityListener implements Listener{
 				}
 			}
 		}
-		
-		if(event.getEntityType() == EntityType.PLAYER){
-			Player player = (Player)event.getEntity();
-			player.setPlayerListName(ChatColor.DARK_GREEN + player.getName() + " " + player.getHealth());
-		}
 	}
-
-	@EventHandler
-    public void healthRegained(EntityRegainHealthEvent event) {
-        if(event.getEntityType() == EntityType.PLAYER){
-            Player player = (Player)event.getEntity();
-            player.setPlayerListName(ChatColor.DARK_GREEN + player.getName() + " " + player.getHealth());
-        }
-    }
 
 	
 	@EventHandler

@@ -15,7 +15,7 @@
             "lore": ["It is said that zombies run on potatoes..."]
         },
         {
-            "item": "SULPHUR",
+            "item": "GUNPOWDER",
             "name": "Zombie Fuel",
             "quantity": 1,
             "chance": 0.05,            
@@ -23,7 +23,7 @@
         },
         {
             "item": "PUMPKIN_SEEDS",
-            "name": "Antidote",
+            "name": "Pinch of Antidote",
             "quantity": 1,
             "chance": 0.01,            
             "lore": ["A quick patch for zombie bites!"]

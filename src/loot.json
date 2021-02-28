@@ -22,6 +22,34 @@
             "lore": ["BOOM!"]
         },
         {
+            "item": "BONE",
+            "name": "Zombie Parts",
+            "quantity": 1,
+            "chance": 0.08,
+            "lore": ["Crunchy..."]
+        },
+        {
+            "item": "ZOMBIE_HEAD",
+            "name": "Decapitated Head",
+            "quantity": 1,
+            "chance": 0.05,
+            "lore": ["Braaaaaaains!"]
+        },
+        {
+            "item": "ARROW",
+            "name": "Weapon of the Old Days",
+            "quantity": 1,
+            "chance": 0.05,
+            "lore": ["It's believed this was previously used by the ancients..."]
+        },
+        {
+            "item": "SPIDER_EYE",
+            "name": "A Single Eye...",
+            "quantity": 1,
+            "chance": 0.10,
+            "lore": ["Why were you carrying this?!"]
+        },
+        {
             "item": "PUMPKIN_SEEDS",
             "name": "Pinch of Antidote",
             "quantity": 1,

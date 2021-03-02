@@ -1,6 +1,7 @@
 package uk.co.domaincraft.minecraft.plugins.zombie_arrival.listeners;
 
 import com.kronosad.api.internet.ReadURL;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
@@ -361,10 +362,22 @@ public class EntityListener implements Listener{
 	
 	@EventHandler
     public void playerConsumptionEvent(PlayerItemConsumeEvent event) {
-        if(event.getItem().getType() == Material.PUMPKIN_PIE && event.getPlayer().hasPotionEffect(PotionEffectType.POISON)) {
-            event.getPlayer().removePotionEffect(PotionEffectType.POISON);
-            event.getPlayer().sendMessage(ChatColor.AQUA + "You have been cured!");
+        boolean hasNegativeEffect = false;
+        for(PotionEffect effect : event.getPlayer().getActivePotionEffects()) {
+            if(effect.getType().equals(PotionEffectType.BLINDNESS) || effect.getType().equals(PotionEffectType.HUNGER)
+                    || effect.getType().equals(PotionEffectType.CONFUSION) || effect.getType().equals(PotionEffectType.POISON)) {
+                event.getPlayer().removePotionEffect(effect.getType());
+                hasNegativeEffect = true;
+            }
         }
+
+        if(hasNegativeEffect) {
+            TextComponent healMessage = new TextComponent("You suddenly feel ready to fight again.");
+            healMessage.setColor(net.md_5.bungee.api.ChatColor.DARK_AQUA);
+            healMessage.setItalic(true);
+            event.getPlayer().sendMessage(healMessage.toLegacyText());
+        }
+
     }
 	
 	@EventHandler

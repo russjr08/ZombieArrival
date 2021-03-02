@@ -115,7 +115,7 @@ public class EntityListener implements Listener{
             if(event.getCause() == DamageCause.ENTITY_ATTACK){
                 if(event.getDamager() instanceof Zombie){
                     LivingEntity theDamaged = (LivingEntity)event.getEntity();
-                    theDamaged.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 200, 2));
+                    theDamaged.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 200, 25));
                     if(randChance == 1){
                         theDamaged.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 500, 500));
                     }else if(randChance == 2){

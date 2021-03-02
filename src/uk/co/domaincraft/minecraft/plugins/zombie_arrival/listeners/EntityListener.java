@@ -377,6 +377,9 @@ public class EntityListener implements Listener{
 	
 	@EventHandler
     public void playerConsumptionEvent(PlayerItemConsumeEvent event) {
+        if(event.getItem().getType() != Material.PUMPKIN_PIE) {
+            return;
+        }
         boolean hasNegativeEffect = false;
         for(PotionEffect effect : event.getPlayer().getActivePotionEffects()) {
             if(effect.getType().equals(PotionEffectType.BLINDNESS) || effect.getType().equals(PotionEffectType.HUNGER)

@@ -57,6 +57,11 @@ public class EntityListener implements Listener{
                 event.getEntity().getWorld().spawnEntity(event.getEntity().getLocation(), EntityType.ZOMBIE);
             }
         }
+
+        if(event.getEntity() instanceof Ghast || event.getEntity() instanceof WitherSkeleton || event.getEntity() instanceof Blaze) {
+            return; // Don't replace Nether mobs... for now.
+        }
+
 		if((event.getEntity() instanceof Monster) && !(event.getEntity() instanceof Zombie
                 || event.getEntity() instanceof Giant)){
 			event.setCancelled(true);

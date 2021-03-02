@@ -303,8 +303,18 @@ public class EntityListener implements Listener{
         }
 
         if(event.getPlayer().getName().equalsIgnoreCase("michaelthesad")) {
-            event.getPlayer().setDisplayName(ChatColor.BLUE + "[ApSci] _the_meme_king_");
-            event.getPlayer().setPlayerListName(ChatColor.BLUE + "[QA] _the_meme_king_");
+            event.getPlayer().setDisplayName(ChatColor.BLUE + "[ApSci] michaelthesad");
+            event.getPlayer().setPlayerListName(ChatColor.BLUE + "[QA] michaelthesad");
+        }
+
+        if(event.getPlayer().getName().equalsIgnoreCase("Redwolfyami")) {
+            event.getPlayer().setDisplayName(ChatColor.DARK_PURPLE + "[QA] Redwolfyami");
+            event.getPlayer().setPlayerListName(ChatColor.DARK_PURPLE + "[QA] Redwolfyami");
+        }
+
+        if(event.getPlayer().getName().equalsIgnoreCase("NearlyVikki")) {
+            event.getPlayer().setDisplayName(ChatColor.GREEN + "[QA] NearlyVikki");
+            event.getPlayer().setPlayerListName(ChatColor.GREEN + "[QA] NearlyVikki");
         }
 
 	}

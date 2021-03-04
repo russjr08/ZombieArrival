@@ -80,7 +80,9 @@ public class EntityListener implements Listener{
 			color2 = rand.nextInt(255);
 			color3 = rand.nextInt(255);
 
-			if(event.getLocation().getWorld().getEnvironment() == World.Environment.NETHER) {
+			World world = event.getLocation().getWorld();
+
+			if(world.getEnvironment() == World.Environment.NETHER && world.getNearbyEntities(event.getLocation(), 64, 64, 64).size() < world.getMonsterSpawnLimit()) {
                 ZombieUtils.spawnHordeWithChance(0.008f, zombie.getLocation(), event.getSpawnReason(), plugin.getServer());
 
             } else {

@@ -58,7 +58,8 @@ public class EntityListener implements Listener{
             }
         }
 
-        if(event.getEntity() instanceof Ghast || event.getEntity() instanceof WitherSkeleton || event.getEntity() instanceof Blaze) {
+        if(event.getEntity() instanceof Ghast || event.getEntity() instanceof WitherSkeleton || event.getEntity() instanceof Blaze
+                || event.getEntity() instanceof Piglin) {
             return; // Don't replace Nether mobs... for now.
         }
 
@@ -82,8 +83,8 @@ public class EntityListener implements Listener{
 
 			World world = event.getLocation().getWorld();
 
-			if(world.getEnvironment() == World.Environment.NETHER && world.getNearbyEntities(event.getLocation(), 64, 64, 64).size() < world.getMonsterSpawnLimit()) {
-                ZombieUtils.spawnHordeWithChance(0.008f, zombie.getLocation(), event.getSpawnReason(), plugin.getServer());
+			if(world.getEnvironment() == World.Environment.NETHER) {
+                ZombieUtils.spawnHordeWithChance(0.02f, zombie.getLocation(), event.getSpawnReason(), plugin.getServer());
 
             } else {
 			    ZombieUtils.spawnHordeWithChance(0.02f, zombie.getLocation(), event.getSpawnReason(), plugin.getServer());
